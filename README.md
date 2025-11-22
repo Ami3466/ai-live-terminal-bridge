@@ -1,56 +1,65 @@
-# AI Live Terminal Bridge
+# AI Live Log Bridge
 
 **Give your AI complete visibility into your development environment - terminal AND browser.**
 
-A bridge between AI coding assistants and your entire development workflow. Monitor terminal commands, browser console logs, and network requests automatically.
+A bridge between AI coding assistants and your live logs. Monitor terminal commands, browser console logs, and network requests automatically.
 
 ---
 
 ## The Problem
 
-When building web applications with AI assistants, you're stuck in a constant copy-paste loop:
+Modern AI coding creates a "Split Brain" development experience. You work in one environment, the AI works in another, and neither side can clearly see what the other is doing.
 
-### Terminal Blindness
-```
-You: "Run the tests"
-AI: [Runs npm test in hidden terminal]
-You: "What happened?"
-AI: "Can you check the terminal output?"
-You: [Scrolls up, copies 50 lines, pastes]
-AI: "I see the issue now..."
-```
+### 1. The AI is Blind to Your Terminal
 
-### Browser Blindness
-```
-You: "Login button doesn't work"
-AI: "Can you check the browser console?"
-You: [Opens F12, copies console.error]
-AI: "What about the network tab?"
-You: [Switches to Network, copies failed request]
-AI: "And the server logs?"
-You: [Switches to terminal, scrolls, copies]
-```
+When you run code in your main terminal, the AI has zero visibility.
 
-**The Pain:** You become a manual copy-paste bridge between AI and your dev environment.
+It cannot see your server logs, runtime errors, or test failures.
+
+**The Pain:** You are forced into a loop of manual copy-pasting just to give the AI eyes.
+
+### 2. You are Blind to the AI's Terminal
+
+AI tools often execute commands in hidden tabs, cramped side panes, or background threads.
+
+It is hard to follow the live execution, catch warnings, or see the full colored output.
+
+**The Pain:** You lose control of your environment because you can't easily monitor what the AI is actually running.
+
+### 3. The AI is Blind to Your Browser
+
+When debugging frontend issues, the AI cannot see browser console errors, network failures, or JavaScript exceptions.
+
+You must manually open DevTools (F12), switch between Console and Network tabs, and copy-paste everything.
+
+**The Pain:** Frontend debugging becomes a multi-step manual process: check console → copy error → check network → copy request → check server logs → copy again.
+
+### 4. The Broken Feedback Loop
+
+Because of these blind spots, the AI blindly assumes its code works as long as the syntax is correct.
+
+It marks tasks as "Fixed" while your local server is crashing or your browser is throwing errors.
+
+**The Pain:** You are the only one checking reality, manually bridging the gap between three disconnected worlds: your terminal, the AI's terminal, and your browser.
 
 ---
 
 ## The Solution
 
-**AI Live Terminal Bridge** creates automatic visibility into BOTH your terminal AND browser:
+**AI Live Log Bridge** creates automatic visibility into BOTH your terminal AND browser:
 
-### 🖥️ Terminal Monitoring
+### Terminal Monitoring
 - Wrap commands with `ai npm test` - everything gets logged
 - AI reads logs automatically via MCP tools
 - No more copy-pasting terminal output
 
-### 🌐 Browser Monitoring
+### Browser Monitoring
 - Chrome extension captures console logs automatically
 - Network requests monitored in real-time
 - AI reads browser errors directly
 - **No more copy-pasting from F12 DevTools**
 
-### 🤖 Unified AI Debugging
+### Unified AI Debugging
 ```
 You: "Login button doesn't work"
 
@@ -69,12 +78,20 @@ Here's the complete fix..."
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
+
+**New here?** → See [QUICKSTART.md](docs/QUICKSTART.md) for a step-by-step guide.
+
+**Below:** Full documentation for reference.
+
+---
+
+## Installation & Setup
 
 ### Install the Tool
 
 ```bash
-npm install -g ai-live-terminal-bridge
+npm install -g ai-live-log-bridge
 ```
 
 ### Setup Terminal Monitoring
@@ -90,21 +107,33 @@ ai python manage.py runserver
 
 ### Setup Browser Monitoring (Optional but Recommended)
 
-**1. Load Chrome Extension:**
-```bash
-# Extension is at: ~/Desktop/ai-live-terminal-bridge-extension
-# Open chrome://extensions/, enable Developer mode
-# Click "Load unpacked", select the extension folder
-```
+> **Coming Soon:** One-click installation from Chrome Web Store! Currently in review.
+>
+> **For now:** Use the manual setup below (temporary until Chrome Web Store approval)
 
-**2. Register Native Host:**
+**1. Install Native Host:**
 ```bash
 npm run install-native-host
 ```
 
-**3. Update Extension ID** (see [Browser Setup](#browser-setup) for details)
+**2. Load Extension Manually:**
+```bash
+# Extension location: ~/Desktop/ai-live-log-bridge-extension
+# 1. Open chrome://extensions/
+# 2. Enable Developer mode
+# 3. Click "Load unpacked"
+# 4. Select ~/Desktop/ai-live-log-bridge-extension
+```
+
+**3. Update Extension ID:**
+```bash
+# Copy Extension ID from chrome://extensions/
+npm run update-extension-id <YOUR_EXTENSION_ID>
+```
 
 **Done!** Now AI can see your terminal AND browser.
+
+**After Chrome Web Store approval:** Steps 2-3 will become a single "Install from Chrome Web Store" button.
 
 ---
 
@@ -153,7 +182,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "ai-live-terminal-bridge": {
+    "ai-live-log-bridge": {
       "command": "ai",
       "args": ["--server"]
     }
@@ -169,7 +198,7 @@ Open Settings > Features > Model Context Protocol, add:
 
 ```json
 {
-  "ai-live-terminal-bridge": {
+  "ai-live-log-bridge": {
     "command": "ai",
     "args": ["--server"]
   }
@@ -184,7 +213,7 @@ Navigate to MCP configuration in settings, add:
 
 ```json
 {
-  "ai-live-terminal-bridge": {
+  "ai-live-log-bridge": {
     "command": "ai",
     "args": ["--server"]
   }
@@ -203,52 +232,63 @@ For tools without MCP support (Aider, Continue, etc.), see [CLI Mode](#cli-mode)
 
 ## Browser Setup
 
-### Step 1: Load Chrome Extension
+> **Note:** Chrome Web Store submission in progress. Once approved, this will be simplified to a single click!
+
+### Current Setup (Manual - Temporary)
+
+**Step 1: Install Native Messaging Host**
 
 ```bash
-# Extension location
-cd ~/Desktop/ai-live-terminal-bridge-extension
-
-# Open Chrome
-chrome chrome://extensions/
-```
-
-1. Enable **Developer mode** (toggle in top right)
-2. Click **Load unpacked**
-3. Select folder: `~/Desktop/ai-live-terminal-bridge-extension`
-4. Extension loads ✅
-
-### Step 2: Register Native Messaging Host
-
-```bash
-cd ~/Desktop/ai-live-terminal-bridge
 npm run install-native-host
 ```
 
-### Step 3: Update Extension ID
+**Step 2: Load Chrome Extension**
 
-1. Copy the **Extension ID** from `chrome://extensions/`
-   - Looks like: `abcdefghijklmnopqrstuvwxyz123456`
+1. Open Chrome: `chrome://extensions/`
+2. Enable **Developer mode** (toggle in top right)
+3. Click **Load unpacked**
+4. Select folder: `~/Desktop/ai-live-log-bridge-extension`
+5. Extension loads ✅
 
-2. Open native messaging manifest:
-   - **macOS**: `~/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.ai_live_terminal_bridge.browser_monitor.json`
-   - **Linux**: `~/.config/google-chrome/NativeMessagingHosts/com.ai_live_terminal_bridge.browser_monitor.json`
+**Step 3: Update Extension ID**
 
-3. Replace `YOUR_EXTENSION_ID` with actual ID
-
-Example:
-```json
-{
-  "name": "com.ai_live_terminal_bridge.browser_monitor",
-  "path": "/path/to/project/dist/browser/native-host.js",
-  "type": "stdio",
-  "allowed_origins": [
-    "chrome-extension://abcdefghijklmnopqrstuvwxyz123456/"
-  ]
-}
+Option A - Automated (Recommended):
+```bash
+# Copy Extension ID from chrome://extensions/, then run:
+npm run update-extension-id <YOUR_EXTENSION_ID>
 ```
 
-### Step 4: Test It
+Option B - Manual:
+1. Copy the **Extension ID** from `chrome://extensions/`
+   - Looks like: `abcdefghijklmnop` (32 lowercase letters a-p)
+
+2. Open native messaging manifest:
+   - **macOS**: `~/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.ai_live_log_bridge.browser_monitor.json`
+   - **Linux**: `~/.config/google-chrome/NativeMessagingHosts/com.ai_live_log_bridge.browser_monitor.json`
+
+3. Replace `YOUR_EXTENSION_ID` with actual ID in `allowed_origins`
+
+### Future Setup (After Chrome Web Store Approval)
+
+**This is what setup will look like soon:**
+
+```bash
+# 1. Install npm package
+npm install -g ai-live-log-bridge
+
+# 2. Install native host (already knows the extension ID!)
+npm run install-native-host
+
+# 3. Install extension from Chrome Web Store
+# Just click: https://chrome.google.com/webstore/[coming-soon]
+# Done!
+```
+
+No copying extension IDs. No manual configuration. Just install and go!
+
+---
+
+### Test It
 
 ```bash
 # Start dev server
@@ -308,8 +348,8 @@ console.error('Test error');
 - Page load times
 
 ✅ **Security**
-- **Localhost only** - Only monitors `localhost:*` and `127.0.0.1:*`
-- Cannot access regular websites
+- **Development sites only** - Monitors `localhost:*`, `127.0.0.1:*`, and development tunnels (ngrok, localtunnel, Cloudflare Tunnel)
+- Cannot access regular websites (Google, GitHub, production sites, etc.)
 - Cookies redacted
 - Authorization headers redacted
 - All data stays on your machine
@@ -607,12 +647,19 @@ Commands still work, just won't be logged. AI won't be able to read output.
 
 ### Does browser monitoring work on all sites?
 
-**No - localhost only** (by design, for security):
+**No - development sites only** (by design, for security):
 - ✅ `localhost:3000`, `localhost:8080`, etc.
 - ✅ `127.0.0.1:*`
+- ✅ `https://*.ngrok.io` (ngrok tunnels)
+- ✅ `https://*.ngrok-free.app` (ngrok free)
+- ✅ `https://*.loca.lt` (localtunnel)
+- ✅ `https://*.trycloudflare.com` (Cloudflare Tunnel)
 - ❌ Regular websites (google.com, github.com, etc.)
+- ❌ Production sites
 
-This prevents the extension from tracking your general browsing.
+This prevents the extension from tracking your general browsing while supporting common development workflows like ngrok for mobile testing, webhook testing, and sharing with teammates.
+
+**Want to add custom domains?** See [Custom Domains Guide](docs/guides/custom-domains.md) for instructions on adding staging environments, Vercel/Netlify previews, or other tunnel services.
 
 ### Does this work with Docker?
 
@@ -636,21 +683,21 @@ This is designed for local development. In CI, use native logging.
 
 ```bash
 # Remove tool
-npm uninstall -g ai-live-terminal-bridge
+npm uninstall -g ai-live-log-bridge
 
 # Remove logs
 rm -rf ~/.mcp-logs
 
 # Remove Chrome extension
 # 1. Go to chrome://extensions/
-# 2. Remove "AI Live Terminal Bridge"
+# 2. Remove "AI Live Log Bridge"
 
 # Remove extension folder
-rm -rf ~/Desktop/ai-live-terminal-bridge-extension
+rm -rf ~/Desktop/ai-live-log-bridge-extension
 
 # Remove native messaging manifest (optional)
-# macOS: ~/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.ai_live_terminal_bridge.browser_monitor.json
-# Linux: ~/.config/google-chrome/NativeMessagingHosts/com.ai_live_terminal_bridge.browser_monitor.json
+# macOS: ~/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.ai_live_log_bridge.browser_monitor.json
+# Linux: ~/.config/google-chrome/NativeMessagingHosts/com.ai_live_log_bridge.browser_monitor.json
 ```
 
 Remove from your AI tool's MCP config if added.
@@ -665,7 +712,7 @@ MIT License - See LICENSE for details.
 
 ## Contributing
 
-Issues and PRs welcome at [GitHub](https://github.com/Ami3466/ai-live-terminal-bridge).
+Issues and PRs welcome at [GitHub](https://github.com/Ami3466/ai-live-log-bridge).
 
 ---
 

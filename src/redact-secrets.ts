@@ -62,16 +62,17 @@ const SECRET_PATTERNS = [
   },
 
   // Database connection strings
-  // Note: Uses greedy matching to handle passwords containing @ symbols
+  // Handles passwords with special characters including @ symbols
+  // Pattern: protocol://username:password@host
   {
-    pattern: /(mongodb|postgres|mysql|redis):\/\/([^:]+):([^@]+@[^@]+)@/gi,
+    pattern: /(mongodb|postgres|mysql|redis):\/\/([^:]+):([^@]+)@/gi,
     replacement: (_match: string, protocol: string) => `${protocol}://[USER]:[REDACTED]@`
   },
 
-  // Generic passwords in URLs
-  // Note: Matches passwords of 8+ chars, handles @ symbols in passwords
+  // Generic passwords in URLs (any protocol)
+  // Handles basic auth with usernames and passwords
   {
-    pattern: /:\/\/([^:]+):([^@]+@[^@]+)@/g,
+    pattern: /:\/\/([^:@\s]+):([^@\s]+)@/g,
     replacement: () => '://[USER]:[REDACTED]@'
   },
 
@@ -194,10 +195,9 @@ export function redactSecrets(text: string): string {
  */
 export function containsSecrets(text: string): boolean {
   return SECRET_PATTERNS.some(({ pattern }) => {
-    // Reset regex lastIndex to ensure clean test
-    if (pattern.global) {
-      pattern.lastIndex = 0;
-    }
-    return pattern.test(text);
+    // Clone the regex to avoid state pollution
+    // Global regexes maintain lastIndex state which can cause bugs
+    const regex = new RegExp(pattern.source, pattern.flags);
+    return regex.test(text);
   });
 }

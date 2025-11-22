@@ -1,7 +1,67 @@
 import { randomBytes } from 'crypto';
-import { writeFileSync, readFileSync, existsSync, unlinkSync, renameSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync, unlinkSync, renameSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { BROWSER_MCP_DIR, BROWSER_ACTIVE_DIR, BROWSER_INACTIVE_DIR } from './browser-storage.js';
+
+/**
+ * Simple file-based locking mechanism to prevent concurrent writes
+ * Uses lock files to ensure atomic operations on shared JSON files
+ */
+const activeLocks = new Set<string>();
+
+function acquireLock(lockName: string, timeoutMs: number = 5000): boolean {
+  const lockFile = join(BROWSER_MCP_DIR, `.${lockName}.lock`);
+  const startTime = Date.now();
+
+  // Ensure directory exists
+  if (!existsSync(BROWSER_MCP_DIR)) {
+    mkdirSync(BROWSER_MCP_DIR, { recursive: true });
+  }
+
+  // Wait for lock to be available
+  while (activeLocks.has(lockName) || existsSync(lockFile)) {
+    if (Date.now() - startTime > timeoutMs) {
+      // Lock timeout - clean up stale lock if it's too old
+      try {
+        if (existsSync(lockFile)) {
+          const stats = require('fs').statSync(lockFile);
+          const fileAge = Date.now() - stats.mtimeMs;
+          if (fileAge > 30000) { // 30 seconds
+            unlinkSync(lockFile);
+          }
+        }
+      } catch {
+        // Ignore cleanup errors
+      }
+      return false;
+    }
+    // Busy wait with small delay
+    const now = Date.now();
+    while (Date.now() - now < 10) { /* spin */ }
+  }
+
+  // Acquire lock
+  activeLocks.add(lockName);
+  try {
+    writeFileSync(lockFile, String(process.pid), 'utf-8');
+    return true;
+  } catch {
+    activeLocks.delete(lockName);
+    return false;
+  }
+}
+
+function releaseLock(lockName: string): void {
+  const lockFile = join(BROWSER_MCP_DIR, `.${lockName}.lock`);
+  activeLocks.delete(lockName);
+  try {
+    if (existsSync(lockFile)) {
+      unlinkSync(lockFile);
+    }
+  } catch {
+    // Ignore cleanup errors
+  }
+}
 
 /**
  * Browser Session Management
@@ -51,12 +111,22 @@ export function registerBrowserSession(sessionId: string, projectDir: string, ur
 
   const masterPath = getBrowserMasterIndexPath();
 
-  // Append to master index (create if doesn't exist)
-  if (existsSync(masterPath)) {
-    const content = readFileSync(masterPath, 'utf-8');
-    writeFileSync(masterPath, content + entry, 'utf-8');
-  } else {
-    writeFileSync(masterPath, entry, 'utf-8');
+  // Acquire lock before modifying shared file
+  if (!acquireLock('master-index', 5000)) {
+    console.error('[Browser Session] Failed to acquire lock for master index');
+    return;
+  }
+
+  try {
+    // Append to master index (create if doesn't exist)
+    if (existsSync(masterPath)) {
+      const content = readFileSync(masterPath, 'utf-8');
+      writeFileSync(masterPath, content + entry, 'utf-8');
+    } else {
+      writeFileSync(masterPath, entry, 'utf-8');
+    }
+  } finally {
+    releaseLock('master-index');
   }
 }
 
@@ -104,20 +174,31 @@ export function getActiveBrowserSessionsPath(): string {
  */
 export function markBrowserSessionActive(sessionId: string, projectDir: string, url?: string): void {
   const activePath = getActiveBrowserSessionsPath();
-  let active: Record<string, { projectDir: string; startTime: string; url?: string }> = {};
 
-  if (existsSync(activePath)) {
-    const content = readFileSync(activePath, 'utf-8');
-    active = JSON.parse(content);
+  // Acquire lock before modifying shared file
+  if (!acquireLock('active-sessions', 5000)) {
+    console.error('[Browser Session] Failed to acquire lock for active sessions');
+    return;
   }
 
-  active[sessionId] = {
-    projectDir,
-    startTime: new Date().toISOString(),
-    ...(url && { url })
-  };
+  try {
+    let active: Record<string, { projectDir: string; startTime: string; url?: string }> = {};
 
-  writeFileSync(activePath, JSON.stringify(active, null, 2), 'utf-8');
+    if (existsSync(activePath)) {
+      const content = readFileSync(activePath, 'utf-8');
+      active = JSON.parse(content);
+    }
+
+    active[sessionId] = {
+      projectDir,
+      startTime: new Date().toISOString(),
+      ...(url && { url })
+    };
+
+    writeFileSync(activePath, JSON.stringify(active, null, 2), 'utf-8');
+  } finally {
+    releaseLock('active-sessions');
+  }
 }
 
 /**
@@ -128,26 +209,45 @@ export function markBrowserSessionActive(sessionId: string, projectDir: string, 
 export function markBrowserSessionCompleted(sessionId: string, archiveLog: boolean = true): void {
   const activePath = getActiveBrowserSessionsPath();
 
-  if (existsSync(activePath)) {
-    const content = readFileSync(activePath, 'utf-8');
-    const active = JSON.parse(content);
-    delete active[sessionId];
-    writeFileSync(activePath, JSON.stringify(active, null, 2), 'utf-8');
+  // Acquire lock before modifying shared file
+  if (!acquireLock('active-sessions', 5000)) {
+    console.error('[Browser Session] Failed to acquire lock for active sessions');
+    return;
+  }
+
+  try {
+    if (existsSync(activePath)) {
+      const content = readFileSync(activePath, 'utf-8');
+      const active = JSON.parse(content);
+      delete active[sessionId];
+      writeFileSync(activePath, JSON.stringify(active, null, 2), 'utf-8');
+    }
+  } finally {
+    releaseLock('active-sessions');
   }
 
   // Move the log file to inactive directory if requested
+  // (file operations don't need locks as they're session-specific)
   if (archiveLog) {
     const activeLogPath = getBrowserSessionLogPath(sessionId, true);
     const inactiveLogPath = getBrowserSessionLogPath(sessionId, false);
 
     if (existsSync(activeLogPath)) {
-      renameSync(activeLogPath, inactiveLogPath);
+      try {
+        renameSync(activeLogPath, inactiveLogPath);
+      } catch (err) {
+        console.error(`[Browser Session] Failed to archive log: ${err}`);
+      }
     }
   } else {
     // Delete if not archiving
     const activeLogPath = getBrowserSessionLogPath(sessionId, true);
     if (existsSync(activeLogPath)) {
-      unlinkSync(activeLogPath);
+      try {
+        unlinkSync(activeLogPath);
+      } catch (err) {
+        console.error(`[Browser Session] Failed to delete log: ${err}`);
+      }
     }
   }
 }

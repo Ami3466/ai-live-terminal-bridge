@@ -1,4 +1,6 @@
 import { createWriteStream, WriteStream } from 'fs';
+import { resolve, normalize } from 'path';
+import { z } from 'zod';
 import { redactSecrets } from '../redact-secrets.js';
 import { ensureBrowserStorageExists } from './browser-storage.js';
 import {
@@ -17,36 +19,40 @@ import {
  * Mirrors the pattern from wrapper.ts but for browser events
  */
 
-interface BrowserMessage {
-  type: 'console' | 'network' | 'error' | 'performance' | 'session-start' | 'session-end';
-  timestamp?: number;
-  url?: string;
-  tabId?: number;
+// Zod schema for validating incoming messages
+const BrowserMessageSchema = z.object({
+  type: z.enum(['console', 'network', 'error', 'performance', 'session-start', 'session-end']),
+  timestamp: z.number().optional(),
+  url: z.string().max(2048).optional(), // Prevent extremely long URLs
+  tabId: z.number().optional(),
 
   // Console message fields
-  level?: 'log' | 'info' | 'warn' | 'error' | 'debug';
-  text?: string;
-  stackTrace?: any;
+  level: z.enum(['log', 'info', 'warn', 'error', 'debug']).optional(),
+  text: z.string().max(50000).optional(), // Limit message size to prevent DoS
+  stackTrace: z.any().optional(),
 
   // Network message fields
-  method?: string;
-  status?: number;
-  duration?: number;
-  headers?: Record<string, string>;
-  requestBody?: string;
-  responseBody?: string;
+  method: z.string().max(10).optional(),
+  status: z.number().min(100).max(599).optional(),
+  duration: z.number().min(0).optional(),
+  headers: z.record(z.string()).optional(),
+  requestBody: z.string().max(100000).optional(), // Limit body size
+  responseBody: z.string().max(100000).optional(),
 
   // Performance fields
-  metric?: string;
-  value?: number;
+  metric: z.string().max(100).optional(),
+  value: z.number().optional(),
 
   // Session fields
-  projectDir?: string;
-}
+  projectDir: z.string().max(1024).optional(), // Limit path length
+});
+
+type BrowserMessage = z.infer<typeof BrowserMessageSchema>;
 
 export class NativeHost {
   private sessionId: string | null = null;
   private logStream: WriteStream | null = null;
+  private isStartingSession: boolean = false;
 
   /**
    * Start the native messaging host
@@ -64,8 +70,25 @@ export class NativeHost {
     // Log to stderr (stdout is reserved for native messaging protocol)
     console.error('[Native Host] Browser monitoring started');
 
-    // Chrome sends length-prefixed messages, but for simplicity we'll use line-delimited JSON
-    // Each message is a complete JSON object on a single line
+    /**
+     * PROTOCOL NOTE:
+     * Chrome's Native Messaging protocol officially uses length-prefixed binary messages:
+     * - First 4 bytes: uint32 message length (little-endian)
+     * - Following bytes: UTF-8 encoded JSON message
+     *
+     * However, for development simplicity and compatibility with text-based extensions,
+     * this implementation currently uses line-delimited JSON (one JSON object per line).
+     *
+     * The Chrome extension must be configured to send messages in the same format:
+     * - Each message should be a complete JSON object
+     * - Messages should be separated by newline characters (\n)
+     * - No binary framing is expected
+     *
+     * To switch to proper Chrome Native Messaging protocol, both the extension and
+     * this host would need to be updated to handle binary length-prefixed messages.
+     *
+     * See: https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging
+     */
     let buffer = '';
 
     process.stdin.on('data', (chunk: Buffer) => {
@@ -78,8 +101,17 @@ export class NativeHost {
       for (const line of lines) {
         if (line.trim()) {
           try {
-            const message: BrowserMessage = JSON.parse(line);
-            this.handleMessage(message);
+            const parsed = JSON.parse(line);
+
+            // Validate message structure with Zod
+            const validationResult = BrowserMessageSchema.safeParse(parsed);
+
+            if (!validationResult.success) {
+              console.error('[Native Host] Invalid message format:', validationResult.error.flatten());
+              continue;
+            }
+
+            this.handleMessage(validationResult.data);
           } catch (err) {
             console.error('[Native Host] Failed to parse message:', err);
           }
@@ -98,11 +130,42 @@ export class NativeHost {
   }
 
   /**
+   * Validate and sanitize project directory path
+   */
+  private validateProjectDir(projectDir: string | undefined): string {
+    const cwd = process.cwd();
+
+    if (!projectDir) {
+      return cwd;
+    }
+
+    // Normalize and resolve the path to prevent traversal
+    const normalizedPath = normalize(projectDir);
+    const resolvedPath = resolve(normalizedPath);
+
+    // Security check: prevent path traversal
+    // Only allow absolute paths that don't contain suspicious patterns
+    if (normalizedPath.includes('..') || normalizedPath.includes('~')) {
+      console.error('[Native Host] Rejected suspicious project path:', projectDir);
+      return cwd;
+    }
+
+    // Additional validation: path must be absolute and reasonable
+    if (!resolvedPath.startsWith('/')) {
+      console.error('[Native Host] Rejected non-absolute path:', projectDir);
+      return cwd;
+    }
+
+    return resolvedPath;
+  }
+
+  /**
    * Handle a message from the Chrome extension
    */
   private handleMessage(message: BrowserMessage): void {
     if (message.type === 'session-start') {
-      this.startSession(message.projectDir || process.cwd(), message.url);
+      const validatedDir = this.validateProjectDir(message.projectDir);
+      this.startSession(validatedDir, message.url);
       return;
     }
 
@@ -111,10 +174,16 @@ export class NativeHost {
       return;
     }
 
-    // Ensure session is started
+    // Ensure session is started (prevent race condition with flag)
     if (!this.sessionId || !this.logStream) {
+      if (this.isStartingSession) {
+        // Session is already being started, skip this message
+        console.error('[Native Host] Session start in progress, skipping message');
+        return;
+      }
       // Auto-start session if not already started
-      this.startSession(message.projectDir || process.cwd(), message.url);
+      const validatedDir = this.validateProjectDir(message.projectDir);
+      this.startSession(validatedDir, message.url);
     }
 
     // Route message to appropriate handler
@@ -145,50 +214,80 @@ export class NativeHost {
       return;
     }
 
-    this.sessionId = generateBrowserSessionId();
-    const logFilePath = getBrowserSessionLogPath(this.sessionId);
+    if (this.isStartingSession) {
+      console.error('[Native Host] Session start already in progress');
+      return;
+    }
 
-    // Register this session in the master index
-    registerBrowserSession(this.sessionId, projectDir, url);
+    this.isStartingSession = true;
 
-    // Mark this session as active
-    markBrowserSessionActive(this.sessionId, projectDir, url);
+    try {
+      this.sessionId = generateBrowserSessionId();
+      const logFilePath = getBrowserSessionLogPath(this.sessionId);
 
-    // Create log file stream
-    this.logStream = createWriteStream(logFilePath, { flags: 'w' });
+      // Register this session in the master index
+      registerBrowserSession(this.sessionId, projectDir, url);
 
-    // Write header
-    const timestamp = new Date().toISOString();
-    const urlPart = url ? `\n[${timestamp}] URL: ${url}` : '';
-    const header = `${'='.repeat(80)}\n[${timestamp}] Browser Session: ${this.sessionId}\n[${timestamp}] Project: ${projectDir}${urlPart}\n${'='.repeat(80)}\n`;
-    this.logStream.write(header);
+      // Mark this session as active
+      markBrowserSessionActive(this.sessionId, projectDir, url);
 
-    console.error(`[Native Host] Started session: ${this.sessionId}`);
+      // Create log file stream
+      this.logStream = createWriteStream(logFilePath, { flags: 'w' });
 
-    // Send response back to extension (optional)
-    this.sendResponse({ success: true, sessionId: this.sessionId });
+      // Handle stream errors to prevent crashes
+      this.logStream.on('error', (err) => {
+        console.error('[Native Host] Log stream error:', err);
+        this.endSession();
+      });
+
+      // Write header
+      const timestamp = new Date().toISOString();
+      const urlPart = url ? `\n[${timestamp}] URL: ${url}` : '';
+      const header = `${'='.repeat(80)}\n[${timestamp}] Browser Session: ${this.sessionId}\n[${timestamp}] Project: ${projectDir}${urlPart}\n${'='.repeat(80)}\n`;
+      this.logStream.write(header);
+
+      console.error(`[Native Host] Started session: ${this.sessionId}`);
+
+      // Send response back to extension (optional)
+      this.sendResponse({ success: true, sessionId: this.sessionId });
+    } catch (err) {
+      console.error('[Native Host] Failed to start session:', err);
+      this.sessionId = null;
+      this.logStream = null;
+    } finally {
+      this.isStartingSession = false;
+    }
   }
 
   /**
    * End the current browser monitoring session
    */
   private endSession(): void {
-    if (!this.sessionId || !this.logStream) {
+    if (!this.sessionId && !this.logStream) {
       return;
     }
 
-    const footer = `\n[${new Date().toISOString()}] Browser session ended\n`;
-    this.logStream.write(footer);
-    this.logStream.end();
+    try {
+      if (this.logStream) {
+        const footer = `\n[${new Date().toISOString()}] Browser session ended\n`;
+        this.logStream.write(footer);
+        this.logStream.end();
+      }
 
-    // Mark session as completed
-    const keepDays = parseInt(process.env.AI_KEEP_LOGS || '1', 10);
-    const archiveLog = keepDays > 0;
-    markBrowserSessionCompleted(this.sessionId, archiveLog);
-
-    console.error(`[Native Host] Ended session: ${this.sessionId}`);
-    this.sessionId = null;
-    this.logStream = null;
+      // Mark session as completed
+      if (this.sessionId) {
+        const keepDays = parseInt(process.env.AI_KEEP_LOGS || '1', 10);
+        const archiveLog = keepDays > 0;
+        markBrowserSessionCompleted(this.sessionId, archiveLog);
+        console.error(`[Native Host] Ended session: ${this.sessionId}`);
+      }
+    } catch (err) {
+      console.error('[Native Host] Error ending session:', err);
+    } finally {
+      this.sessionId = null;
+      this.logStream = null;
+      this.isStartingSession = false;
+    }
   }
 
   /**

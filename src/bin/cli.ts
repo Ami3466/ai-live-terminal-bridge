@@ -140,7 +140,7 @@ async function main() {
   // Mode D: Wrapper (Default)
   // Usage: ai <command>
   if (args.length === 0) {
-    console.log(chalk.cyan('🤖 AI Live Terminal Bridge'));
+    console.log(chalk.cyan('🤖 AI Live Log Bridge'));
     console.log(chalk.gray('\nUsage:'));
     console.log(chalk.white('  ai <command>           ') + chalk.gray('Run command with logging'));
     console.log(chalk.white('  ai live                ') + chalk.gray('Watch logs in real-time (Ctrl+C to exit)'));

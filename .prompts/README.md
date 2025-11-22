@@ -1,4 +1,4 @@
-# Prompt Files for AI Terminal Bridge
+# Prompt Files for AI Live Log Bridge
 
 ⚠️ **Note:** These files are only needed for **CLI Mode**. If you're using **MCP Mode** (recommended), you don't need these files at all!
 
@@ -80,7 +80,7 @@ Only use these files if your AI tool doesn't support MCP yet.
 ```bash
 # In your project root
 mkdir -p .prompts
-cp /path/to/ai-live-terminal-bridge/.prompts/ai-wrapper.md .prompts/
+cp /path/to/ai-live-log-bridge/.prompts/ai-wrapper.md .prompts/
 ```
 
 #### Option 2: Use Cursor/Windsurf Rules Files
@@ -93,7 +93,7 @@ cp /path/to/ai-live-terminal-bridge/.prompts/ai-wrapper.md .prompts/
 #### Option 3: Add Auto-Approval (Advanced)
 ```bash
 # Only if you understand the security implications
-cp /path/to/ai-live-terminal-bridge/.prompts/settings.local.json .prompts/
+cp /path/to/ai-live-log-bridge/.prompts/settings.local.json .prompts/
 ```
 
 ---

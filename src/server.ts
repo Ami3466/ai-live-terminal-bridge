@@ -19,7 +19,7 @@ import { readRecentBrowserLogs, getBrowserSessionLogFiles } from './browser/brow
 export async function startMCPServer(): Promise<void> {
   const server = new Server(
     {
-      name: 'ai-live-terminal-bridge',
+      name: 'ai-live-log-bridge',
       version: '1.3.2',
     },
     {
@@ -72,7 +72,7 @@ export async function startMCPServer(): Promise<void> {
     },
     {
       name: 'get_usage_instructions',
-      description: 'Get comprehensive instructions on how to properly use the ai-live-terminal-bridge system. Call this tool to understand the critical requirement to run all commands with the \'ai\' wrapper.',
+      description: 'Get comprehensive instructions on how to properly use the ai-live-log-bridge system. Call this tool to understand the critical requirement to run all commands with the \'ai\' wrapper.',
       inputSchema: {
         type: 'object',
         properties: {},
@@ -330,7 +330,7 @@ export async function startMCPServer(): Promise<void> {
       }
 
       if (name === 'get_usage_instructions') {
-        const instructions = `# AI Live Terminal Bridge - Usage Instructions
+        const instructions = `# AI Live Log Bridge - Usage Instructions
 
 ## 🚨 CRITICAL: Running Commands
 
@@ -401,11 +401,32 @@ This is not optional - it's required for the system to work.`;
         const sessionFiles = getBrowserSessionLogFiles(undefined, process.cwd(), true);
 
         if (sessionFiles.length === 0) {
+          // Provide more detailed troubleshooting
+          const setupChecks = [
+            '**Setup Verification:**',
+            '  1. Run: `npm run verify-browser-setup` to check your configuration',
+            '',
+            '**Common Issues:**',
+            '  • Extension not installed → Load from chrome://extensions/',
+            '  • Extension not connected → Check that native host is registered',
+            '  • No localhost pages open → Extension only monitors localhost:* pages',
+            '  • Extension ID not configured → Run: npm run update-extension-id <ID>',
+            '',
+            '**Quick Fix:**',
+            '  1. Ensure project is built: `npm run build`',
+            '  2. Install native host: `npm run install-native-host`',
+            '  3. Get extension ID from chrome://extensions/',
+            '  4. Configure ID: `npm run update-extension-id <EXTENSION_ID>`',
+            '  5. Refresh localhost page in Chrome',
+            '',
+            'For detailed setup instructions, use the `get_browser_instructions` tool.',
+          ];
+
           return {
             content: [
               {
                 type: 'text',
-                text: 'No browser logs found. Make sure:\n\n1. The Chrome extension is installed\n2. You have opened a localhost page in Chrome\n3. The extension is connected to the native host\n\nFor installation instructions, use the get_browser_instructions tool.',
+                text: `# ❌ No Browser Logs Found\n\nNo active browser sessions detected for this project.\n\n${setupChecks.join('\n')}`,
               },
             ],
           };
@@ -433,7 +454,7 @@ This is not optional - it's required for the system to work.`;
             content: [
               {
                 type: 'text',
-                text: 'No browser logs found. Make sure the Chrome extension is installed and connected.\n\nFor installation instructions, use the get_browser_instructions tool.',
+                text: '# ❌ No Browser Logs Found\n\nCannot check for browser errors - no active browser sessions detected.\n\n**Quick Diagnostics:**\n  1. Run: `npm run verify-browser-setup`\n  2. Check that you have a localhost page open in Chrome\n  3. Verify extension is loaded at chrome://extensions/\n\nFor installation instructions, use the `get_browser_instructions` tool.',
               },
             ],
           };
@@ -496,7 +517,7 @@ This is not optional - it's required for the system to work.`;
 The Chrome extension is located on your Desktop:
 
 \`\`\`bash
-cd ~/Desktop/ai-live-terminal-bridge-extension
+cd ~/Desktop/ai-live-log-bridge-extension
 \`\`\`
 
 ### Step 2: Load Extension in Chrome
@@ -504,7 +525,7 @@ cd ~/Desktop/ai-live-terminal-bridge-extension
 1. Open Chrome and go to: \`chrome://extensions/\`
 2. Enable "Developer mode" (toggle in top right)
 3. Click "Load unpacked"
-4. Select the folder: \`~/Desktop/ai-live-terminal-bridge-extension\`
+4. Select the folder: \`~/Desktop/ai-live-log-bridge-extension\`
 5. The extension should now appear in your extensions list
 
 ### Step 3: Verify Connection
