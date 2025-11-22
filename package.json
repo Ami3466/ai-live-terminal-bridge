@@ -1,0 +1,58 @@
+{
+  "name": "ai-live-terminal-bridge",
+  "version": "1.0.0",
+  "description": "A bridge between AI assistants and your terminal. Run commands with `ai` and your AI can read the logs automatically.",
+  "main": "dist/bin/cli.js",
+  "bin": {
+    "ai": "./dist/bin/cli.js"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "prepare": "npm run build",
+    "start": "node dist/index.js",
+    "dev": "tsc && node dist/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "cli",
+    "log-monitoring",
+    "claude",
+    "cursor",
+    "windsurf",
+    "claude-code",
+    "ai-assistant",
+    "debugging",
+    "terminal",
+    "logging"
+  ],
+  "author": "AI Live Terminal Bridge Contributors",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ami3466/ai-live-terminal-bridge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Ami3466/ai-live-terminal-bridge/issues"
+  },
+  "homepage": "https://github.com/Ami3466/ai-live-terminal-bridge#readme",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "chalk": "^5.3.0",
+    "cross-spawn": "^7.0.3",
+    "read-last-lines": "^1.8.0",
+    "strip-ansi": "^7.1.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/cross-spawn": "^6.0.6",
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

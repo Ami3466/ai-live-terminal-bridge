@@ -1,0 +1,26 @@
+{
+  "$schema": "https://schemas.anthropic.com/claude-code/settings.local.json",
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(node:*)",
+      "Bash(test-app.log)",
+      "Bash(npm run build:*)",
+      "Bash(npm link)",
+      "Bash(cat:*)",
+      "Bash(chmod:*)",
+      "Bash(python3:*)",
+      "Bash(test:*)",
+      "Bash(mcp-live-log-monitor:*)",
+      "Bash(timeout 2 node:*)",
+      "Bash(tree:*)",
+      "Bash(ai echo:*)",
+      "Bash(ai --last 3:*)",
+      "Bash(ai node:*)",
+      "Bash(ai:*)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "_comment": "⚠️  WARNING: This file auto-approves 'ai' commands in Claude Code. Only use in trusted projects. See .prompts/README.md for details."
+}
