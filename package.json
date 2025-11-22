@@ -12,7 +12,9 @@
     "watch": "tsc --watch",
     "prepare": "npm run build",
     "start": "node dist/index.js",
-    "dev": "tsc && node dist/index.js"
+    "dev": "tsc && node dist/index.js",
+    "install-native-host": "node scripts/install-native-host.js",
+    "build-extension": "node scripts/build-extension.js"
   },
   "keywords": [
     "mcp",

@@ -9,6 +9,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { existsSync } from 'fs';
 import { LOG_FILE, readRecentLogs, getSessionLogFiles } from './storage.js';
+import { readRecentBrowserLogs, getBrowserSessionLogFiles } from './browser/browser-storage.js';
 
 /**
  * MCP Server Mode
@@ -72,6 +73,40 @@ export async function startMCPServer(): Promise<void> {
     {
       name: 'get_usage_instructions',
       description: 'Get comprehensive instructions on how to properly use the ai-live-terminal-bridge system. Call this tool to understand the critical requirement to run all commands with the \'ai\' wrapper.',
+      inputSchema: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    {
+      name: 'view_browser_logs',
+      description: 'View LIVE browser console logs and network activity for the CURRENT PROJECT only. Shows ONLY currently active browser sessions.\n\nAutomatically filters to show:\n- ✅ Only sessions from the current working directory\n- ✅ Only LIVE/ACTIVE browser sessions\n- ❌ Completed sessions are auto-deleted\n\nCaptures:\n- Console logs (log, warn, error, debug)\n- Network requests (URL, method, status, timing)\n- JavaScript errors with stack traces\n- Performance metrics\n\nIMPORTANT: User must have the Chrome extension installed and connected. The extension captures browser activity from localhost:* pages only.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          lines: {
+            type: 'number',
+            description: 'Number of recent lines to read (default: 100)',
+          },
+        },
+      },
+    },
+    {
+      name: 'get_browser_errors',
+      description: 'View ONLY browser errors and failed network requests for the CURRENT PROJECT. Shows console errors, JavaScript exceptions, and HTTP errors from LIVE browser sessions.\n\nAutomatically filters to show:\n- ✅ Only error-level logs (console.error, exceptions)\n- ✅ Only failed network requests (4xx, 5xx status codes)\n- ✅ Only from current working directory\n- ✅ Only LIVE/ACTIVE sessions\n\nUse this when debugging browser-side issues or API failures.\n\nIMPORTANT: User must have the Chrome extension installed and connected.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          lines: {
+            type: 'number',
+            description: 'Number of recent lines to analyze (default: 100)',
+          },
+        },
+      },
+    },
+    {
+      name: 'get_browser_instructions',
+      description: 'Get comprehensive instructions on how to install and use the browser monitoring Chrome extension. Includes setup steps, troubleshooting, and usage guide.',
       inputSchema: {
         type: 'object',
         properties: {},
@@ -349,6 +384,206 @@ Every time you run a terminal command, use the 'ai' wrapper. No exceptions.
 Format: ai <command>
 
 This is not optional - it's required for the system to work.`;
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: instructions,
+            },
+          ],
+        };
+      }
+
+      if (name === 'view_browser_logs') {
+        const lines = (args?.lines as number) || 100;
+
+        const sessionFiles = getBrowserSessionLogFiles(undefined, process.cwd(), true);
+
+        if (sessionFiles.length === 0) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: 'No browser logs found. Make sure:\n\n1. The Chrome extension is installed\n2. You have opened a localhost page in Chrome\n3. The extension is connected to the native host\n\nFor installation instructions, use the get_browser_instructions tool.',
+              },
+            ],
+          };
+        }
+
+        const recentLines = readRecentBrowserLogs(lines, 10, process.cwd(), true);
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: recentLines || 'Browser log file is empty.',
+            },
+          ],
+        };
+      }
+
+      if (name === 'get_browser_errors') {
+        const lines = (args?.lines as number) || 100;
+
+        const sessionFiles = getBrowserSessionLogFiles(undefined, process.cwd(), true);
+
+        if (sessionFiles.length === 0) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: 'No browser logs found. Make sure the Chrome extension is installed and connected.\n\nFor installation instructions, use the get_browser_instructions tool.',
+              },
+            ],
+          };
+        }
+
+        const content = readRecentBrowserLogs(lines, 10, process.cwd(), true);
+        const recentLines = content.split('\n');
+
+        // Browser error patterns
+        const errorPatterns = [
+          /\[Console error\]/i,
+          /\[Console warn\]/i,
+          /\[Error\]/i,
+          /\[Network\].*\s(4\d{2}|5\d{2})\s/,  // 4xx or 5xx status codes
+          /TypeError/i,
+          /ReferenceError/i,
+          /SyntaxError/i,
+          /Stack Trace:/i,
+        ];
+
+        // Filter to only error-related lines
+        const errorLines: string[] = [];
+        recentLines.forEach((line: string) => {
+          for (const pattern of errorPatterns) {
+            if (pattern.test(line)) {
+              errorLines.push(line);
+              break;
+            }
+          }
+        });
+
+        if (errorLines.length === 0) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: '✅ No browser errors detected in the recent logs.\n\nNo console errors, JavaScript exceptions, or failed network requests found. If you want to see all browser logs (not just errors), use the view_browser_logs tool instead.',
+              },
+            ],
+          };
+        }
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `# Browser Errors (Filtered)\n\nFound ${errorLines.length} error-related line(s):\n\n\`\`\`\n${errorLines.join('\n')}\n\`\`\`\n\nFor full browser logs including non-error output, use the view_browser_logs tool.`,
+            },
+          ],
+        };
+      }
+
+      if (name === 'get_browser_instructions') {
+        const instructions = `# Browser Monitoring - Installation & Usage
+
+## 📦 One-Time Setup
+
+### Step 1: Install the Chrome Extension
+
+The Chrome extension is located on your Desktop:
+
+\`\`\`bash
+cd ~/Desktop/ai-live-terminal-bridge-extension
+\`\`\`
+
+### Step 2: Load Extension in Chrome
+
+1. Open Chrome and go to: \`chrome://extensions/\`
+2. Enable "Developer mode" (toggle in top right)
+3. Click "Load unpacked"
+4. Select the folder: \`~/Desktop/ai-live-terminal-bridge-extension\`
+5. The extension should now appear in your extensions list
+
+### Step 3: Verify Connection
+
+1. Open Chrome DevTools (F12) on any localhost page
+2. Check the extension icon - it should show "Connected"
+3. If it shows "Disconnected", refresh the page
+
+## 🎯 How It Works
+
+Once installed, the extension automatically:
+
+1. **Captures console logs** from localhost:* pages
+   - console.log(), console.warn(), console.error(), etc.
+   - JavaScript errors and exceptions
+   - Stack traces
+
+2. **Monitors network requests**
+   - Fetch and XMLHttpRequest calls
+   - HTTP status codes
+   - Request/response timing
+   - Failed requests (4xx, 5xx errors)
+
+3. **Streams to MCP**
+   - All data is sent to the native messaging host
+   - Secrets are automatically redacted (cookies, tokens, API keys)
+   - Logs are stored in ~/.mcp-logs/browser/
+
+## 📋 MCP Tools Available
+
+### view_browser_logs
+View all browser activity (console + network):
+\`\`\`
+Use when: User wants to see what's happening in the browser
+Shows: Console logs, network requests, errors, performance metrics
+\`\`\`
+
+### get_browser_errors
+View only errors and failed requests:
+\`\`\`
+Use when: Debugging browser issues, API failures
+Shows: Only console.error, exceptions, HTTP errors (4xx/5xx)
+\`\`\`
+
+## 🔍 Example Usage
+
+**User workflow:**
+1. User runs: \`ai npm run dev\` (starts localhost:3000)
+2. User opens Chrome → http://localhost:3000
+3. User clicks buttons, tests features
+4. Extension captures all console logs and network activity
+5. You can see everything via \`view_browser_logs\` or \`get_browser_errors\`
+
+**You ask:** "Can you check the browser console for errors?"
+**User response:** "Just check it yourself!"
+**You do:** Use \`get_browser_errors\` tool → See all errors immediately
+
+## ⚠️ Important Notes
+
+- Extension only monitors **localhost:*** pages (for security)
+- All secrets are redacted before reaching you
+- Browser sessions are tied to the project directory
+- Only LIVE/ACTIVE sessions are shown (completed sessions auto-archive)
+
+## 🐛 Troubleshooting
+
+**Extension not connecting?**
+- Refresh the localhost page
+- Check that the MCP server is running
+- Verify the native messaging host is registered
+
+**No logs appearing?**
+- Make sure you're on a localhost:* page
+- Check that the extension is enabled
+- Look for errors in chrome://extensions
+
+**Extension disappeared?**
+- Extensions in "developer mode" can be disabled on Chrome restart
+- Just re-enable it in chrome://extensions`;
 
         return {
           content: [

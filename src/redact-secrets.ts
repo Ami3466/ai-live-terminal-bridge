@@ -98,6 +98,78 @@ const SECRET_PATTERNS = [
     pattern: /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g,
     replacement: () => 'XXXX-XXXX-XXXX-[REDACTED]'
   },
+
+  // Browser-specific patterns
+
+  // Session cookies and auth tokens in Cookie header
+  {
+    pattern: /Cookie:\s*([^;]+;?\s*)*/gi,
+    replacement: () => 'Cookie: [REDACTED]'
+  },
+
+  // Set-Cookie headers
+  {
+    pattern: /Set-Cookie:\s*[^\n]+/gi,
+    replacement: () => 'Set-Cookie: [REDACTED]'
+  },
+
+  // Authorization header values
+  {
+    pattern: /Authorization:\s*([^\n]+)/gi,
+    replacement: () => 'Authorization: [REDACTED]'
+  },
+
+  // X-API-Key and similar headers
+  {
+    pattern: /X-API-Key:\s*([^\n]+)/gi,
+    replacement: () => 'X-API-Key: [REDACTED]'
+  },
+
+  // localStorage/sessionStorage values in browser logs
+  {
+    pattern: /(localStorage|sessionStorage)\[['"]([^'"]*(?:token|key|secret|password|auth)[^'"]*)['"]\]\s*=\s*['"]([^'"]+)['"]/gi,
+    replacement: (_match: string, storage: string, key: string) => `${storage}['${key}'] = '[REDACTED]'`
+  },
+
+  // Cookie values in JavaScript (document.cookie assignments)
+  {
+    pattern: /document\.cookie\s*=\s*['"]([^'"]+)['"]/gi,
+    replacement: () => `document.cookie = '[REDACTED]'`
+  },
+
+  // JSON Web Tokens in localStorage/cookies (more specific than generic JWT pattern)
+  {
+    pattern: /(['"])(eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,})\1/g,
+    replacement: (_match: string, quote: string) => `${quote}eyJ[REDACTED_JWT]${quote}`
+  },
+
+  // Access tokens in JSON responses
+  {
+    pattern: /['"]access_token['"]\s*:\s*['"]([^'"]+)['"]/gi,
+    replacement: () => `"access_token": "[REDACTED]"`
+  },
+
+  // Refresh tokens in JSON responses
+  {
+    pattern: /['"]refresh_token['"]\s*:\s*['"]([^'"]+)['"]/gi,
+    replacement: () => `"refresh_token": "[REDACTED]"`
+  },
+
+  // CSRF tokens
+  {
+    pattern: /['"]csrf_token['"]\s*:\s*['"]([^'"]+)['"]/gi,
+    replacement: () => `"csrf_token": "[REDACTED]"`
+  },
+
+  // Session IDs in URLs or cookies
+  {
+    pattern: /PHPSESSID=([a-zA-Z0-9]+)/gi,
+    replacement: () => 'PHPSESSID=[REDACTED]'
+  },
+  {
+    pattern: /JSESSIONID=([a-zA-Z0-9]+)/gi,
+    replacement: () => 'JSESSIONID=[REDACTED]'
+  },
 ];
 
 /**
