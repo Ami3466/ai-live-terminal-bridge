@@ -89,6 +89,34 @@ function generateManifest() {
   };
 }
 
+// Fix the shebang in the native host wrapper to use the local node path
+function fixNativeHostShebang() {
+  console.log('🔧 Fixing native host shebang for Chrome compatibility...');
+
+  // Read the current wrapper
+  const wrapperContent = readFileSync(nativeHostPath, 'utf-8');
+
+  // Detect the node path on this system
+  let nodePath;
+  try {
+    nodePath = execSync('which node', { encoding: 'utf-8' }).trim();
+  } catch (err) {
+    console.warn('⚠️  Could not detect node path, using /usr/bin/env node');
+    nodePath = '/usr/bin/env node';
+  }
+
+  // Replace the shebang line
+  const lines = wrapperContent.split('\n');
+  if (lines[0].startsWith('#!')) {
+    lines[0] = `#!${nodePath}`;
+    const newContent = lines.join('\n');
+    writeFileSync(nativeHostPath, newContent, 'utf-8');
+    console.log(`✅ Shebang updated to: ${nodePath}\n`);
+  } else {
+    console.warn('⚠️  No shebang found in native host wrapper\n');
+  }
+}
+
 // Main installation function
 function install() {
   console.log('🔧 Installing Native Messaging Host...\n');
@@ -100,6 +128,9 @@ function install() {
     console.error('  npm run build\n');
     process.exit(1);
   }
+
+  // Fix the shebang for Chrome compatibility
+  fixNativeHostShebang();
 
   // Get manifest directory
   const manifestDir = getManifestDir();
