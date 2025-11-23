@@ -517,36 +517,37 @@ This is not optional - it's required for the system to work.`;
       if (name === 'get_browser_instructions') {
         const instructions = `Browser Monitoring - Installation & Usage
 
-📦 One-Time Setup
+📦 Chrome Extension
 
-Step 1: Download the Chrome Extension
+The browser monitoring extension is now in a separate repository:
+https://github.com/Ami3466/ai-live-log-bridge-extension
 
-Download the extension from the releases page or clone the repository.
-The extension files need to be placed in a directory on your system.
+Step 1: Install the Extension
 
-Step 2: Load Extension in Chrome
+Visit the extension repository and follow the installation instructions:
+- Chrome Web Store (recommended - coming soon)
+- Manual installation (developer mode)
 
-1. Open Chrome and go to: \`chrome://extensions/\`
-2. Enable "Developer mode" (toggle in top right)
-3. Click "Load unpacked"
-4. Select the extension directory (wherever you extracted it)
-5. The extension should now appear in your extensions list
+Step 2: Configure Native Messaging
 
-Step 3: Configure Native Messaging
-
-Run these commands in the ai-live-log-bridge project directory:
+After installing the extension, configure the native messaging host:
 \`\`\`bash
 npm run install-native-host
 npm run update-extension-id <YOUR_EXTENSION_ID>
 \`\`\`
 
-Get the extension ID from chrome://extensions (it's shown under the extension name).
+Get the extension ID from chrome://extensions (shown under the extension name).
 
-Step 4: Verify Connection
+Step 3: Verify Connection
 
 1. Open Chrome DevTools (F12) on any localhost page
 2. Check the extension icon - it should show "Connected"
 3. If it shows "Disconnected", refresh the page
+
+📖 Full Documentation
+
+For complete setup instructions and troubleshooting:
+https://github.com/Ami3466/ai-live-log-bridge-extension
 
 🎯 How It Works
 

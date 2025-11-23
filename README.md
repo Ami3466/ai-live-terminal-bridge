@@ -107,33 +107,13 @@ ai python manage.py runserver
 
 ### Setup Browser Monitoring (Optional but Recommended)
 
-> **Chrome Web Store:** Currently in review. Manual installation required until approved.
+Monitor browser console logs and network activity from localhost pages.
 
-**1. Download Chrome Extension:**
-```bash
-npm run download-extension
-```
+**Installation Guide:** [Browser Extension Setup](docs/BROWSER_EXTENSION_SETUP.md)
 
-**2. Install Native Host:**
-```bash
-npm run install-native-host
-```
-
-**3. Load Extension in Chrome:**
-- Open `chrome://extensions/`
-- Enable **Developer mode** (top right)
-- Click **Load unpacked**
-- Select: `~/.ai-live-log-bridge-extension`
-- Copy the **Extension ID**
-
-**4. Configure Extension ID:**
-```bash
-npm run update-extension-id <YOUR_EXTENSION_ID>
-```
+**Extension Repository:** [ai-live-log-bridge-extension](https://github.com/Ami3466/ai-live-log-bridge-extension)
 
 **Done!** Now AI can see your terminal AND browser.
-
-**After Chrome Web Store approval:** This becomes a one-click install from the Web Store.
 
 ---
 
@@ -232,63 +212,7 @@ For tools without MCP support (Aider, Continue, etc.), see [CLI Mode](#cli-mode)
 
 ## Browser Setup
 
-> **Note:** Chrome Web Store submission in progress. Once approved, this will be simplified to a single click!
-
-### Current Setup (Manual - Temporary)
-
-**Step 1: Install Native Messaging Host**
-
-```bash
-npm run install-native-host
-```
-
-**Step 2: Load Chrome Extension**
-
-> ⚠️ **IMPORTANT**: Do NOT place this project on your Desktop. Chrome blocks extensions from Desktop for security reasons. Keep it in Documents, Projects, or another non-Desktop location.
-
-1. Open Chrome: `chrome://extensions/`
-2. Enable **Developer mode** (toggle in top right)
-3. Click **Load unpacked**
-4. Select the `extension` folder from this project (e.g., `/Users/yourname/Projects/ai-live-log-bridge/extension`)
-5. Extension loads ✅
-
-**Step 3: Configure Extension ID**
-
-⚠️ **CRITICAL STEP** - Chrome will block the extension if this isn't done correctly!
-
-```bash
-# 1. Get your Extension ID from chrome://extensions/
-#    It's the 32-character string under the extension name
-#    Example: mgnfhhihoknkoomfinmldenmmglebmha
-
-# 2. Run this command with YOUR extension ID:
-npm run update-extension-id <YOUR_EXTENSION_ID>
-
-# 3. RESTART CHROME COMPLETELY (quit and reopen)
-```
-
-**Important Notes:**
-- ⚠️ **Every time you reload the extension**, Chrome may generate a new ID
-- ⚠️ If you see "Access to the specified native messaging host is forbidden", re-run `update-extension-id` with the new ID
-- ⚠️ Always restart Chrome completely after updating the ID (not just reload the page)
-
-### Future Setup (After Chrome Web Store Approval)
-
-**This is what setup will look like soon:**
-
-```bash
-# 1. Install npm package
-npm install -g ai-live-log-bridge
-
-# 2. Install native host (already knows the extension ID!)
-npm run install-native-host
-
-# 3. Install extension from Chrome Web Store
-# Just click: https://chrome.google.com/webstore/[coming-soon]
-# Done!
-```
-
-No copying extension IDs. No manual configuration. Just install and go!
+For detailed browser extension setup instructions, see [Browser Extension Setup Guide](docs/BROWSER_EXTENSION_SETUP.md).
 
 ---
 
@@ -609,10 +533,7 @@ rehash    # Fish
 
 ### Extension not connecting
 
-1. Verify native host installed: `npm run install-native-host`
-2. Check extension ID matches manifest
-3. Refresh localhost page
-4. Check extension service worker console (chrome://extensions/)
+See the [Browser Extension Setup Guide](docs/BROWSER_EXTENSION_SETUP.md) for detailed troubleshooting.
 
 ### No browser logs appearing
 
@@ -693,15 +614,10 @@ npm uninstall -g ai-live-log-bridge
 rm -rf ~/.mcp-logs
 
 # Remove Chrome extension
-# 1. Go to chrome://extensions/
-# 2. Remove "AI Live Log Bridge"
+# Go to chrome://extensions/ and remove "AI Live Log Bridge - Browser Monitor"
 
-# Remove extension from Chrome (go to chrome://extensions/ and remove it)
-# Extension folder is in the project at: extension/
-
-# Remove native messaging manifest (optional)
-# macOS: ~/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.ai_live_log_bridge.browser_monitor.json
-# Linux: ~/.config/google-chrome/NativeMessagingHosts/com.ai_live_log_bridge.browser_monitor.json
+# See extension repository for more details:
+# https://github.com/Ami3466/ai-live-log-bridge-extension
 ```
 
 Remove from your AI tool's MCP config if added.

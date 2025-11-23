@@ -118,55 +118,16 @@ ai go run main.go
 
 This lets your AI see browser console logs and network requests from localhost.
 
-### Step 1: Download the Chrome Extension
+**Installation Guide:** See [Browser Extension Setup](BROWSER_EXTENSION_SETUP.md) for complete instructions.
 
-```bash
-npm run download-extension
-```
+**Extension Repository:** [ai-live-log-bridge-extension](https://github.com/Ami3466/ai-live-log-bridge-extension)
 
-This downloads the extension to `~/.ai-live-log-bridge-extension`
+**Quick Summary:**
+1. Install the Chrome extension from the repository
+2. Configure native messaging host
+3. Test on localhost pages
 
-### Step 2: Install Native Host
-
-```bash
-npm run install-native-host
-```
-
-### Step 3: Load Chrome Extension
-
-> ⚠️ **IMPORTANT**: Do NOT place the project on Desktop. Chrome blocks extensions from Desktop. Use Documents, Projects, or another location.
-
-1. Open Chrome → `chrome://extensions/`
-2. Enable **Developer mode** (top right toggle)
-3. Click **Load unpacked**
-4. Select the `extension` folder from the project directory
-5. **Copy the Extension ID** (32 characters under the extension name)
-
-### Step 4: Connect Extension to Native Host
-
-Run this command with YOUR extension ID from step 3:
-
-```bash
-npm run update-extension-id YOUR_EXTENSION_ID_HERE
-```
-
-Example:
-```bash
-npm run update-extension-id abcdefghijklmnopqrstuvwxyz123456
-```
-
-### Step 5: Test Browser Monitoring
-
-1. **Restart Chrome completely** (quit and reopen)
-2. Navigate to: `http://localhost:3000` (any localhost page)
-3. Open DevTools (F12) → Console
-4. Type: `console.log("Test from browser")`
-5. Ask your AI:
-   ```
-   Check the browser console for any messages
-   ```
-
-Your AI should see the console message automatically!
+Your AI will be able to automatically see browser console logs and network requests!
 
 ---
 
@@ -262,64 +223,9 @@ ai npm test  # ✅ Logged
 npm test     # ❌ Not logged
 ```
 
-### Browser: Extension shows "Disconnected"
+### Browser: Extension issues
 
-**Solutions:**
-1. Verify extension downloaded: `ls ~/.ai-live-log-bridge-extension/manifest.json`
-2. Verify you ran: `npm run update-extension-id <ID>`
-3. Check the extension ID is correct
-4. **Restart Chrome completely** (quit and reopen)
-5. Refresh the localhost page
-
-### Browser: No logs appearing
-
-**Solutions:**
-1. Make sure you're on a **localhost** page (not regular websites)
-2. Extension only monitors `localhost:*` and `127.0.0.1:*`
-3. Check extension is enabled in `chrome://extensions/`
-4. Check extension background console for errors:
-   - Go to `chrome://extensions/`
-   - Click "Inspect views: service worker"
-   - Look for connection errors
-
-### Browser: "Access to the specified native messaging host is forbidden"
-
-**This is the most common issue!** The extension ID changed but the native host still has the old ID.
-
-**When this happens:**
-- Extension reloaded → New ID generated
-- Native host config → Still has old ID
-- Result: Chrome blocks the connection
-
-**Solution:**
-1. Get your current extension ID from `chrome://extensions/`
-2. Run: `npm run update-extension-id <YOUR_NEW_ID>`
-3. **Restart Chrome completely** (quit and reopen, not just reload)
-4. Refresh your localhost page
-
-**Example:**
-```bash
-# Extension ID: mgnfhhihoknkoomfinmldenmmglebmha
-npm run update-extension-id mgnfhhihoknkoomfinmldenmmglebmha
-```
-
-**Prevention:** Avoid reloading unpacked extensions. If you must reload, always re-run `update-extension-id` afterward.
-
-### Browser: "Failed to start native messaging host"
-
-**Solutions:**
-1. Verify native host installed:
-   ```bash
-   cat ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/com.ai_live_log_bridge.browser_monitor.json
-   ```
-2. Should point to: `dist/browser/native-host` (without .js)
-3. Verify wrapper exists and is executable:
-   ```bash
-   which ai
-   ls -l $(npm root -g)/ai-live-log-bridge/dist/browser/native-host
-   ```
-4. Should show: `-rwx--x--x` (executable)
-5. Rebuild if needed: `npm run build`
+For all browser extension troubleshooting, see the [Browser Extension Setup Guide](BROWSER_EXTENSION_SETUP.md).
 
 ---
 

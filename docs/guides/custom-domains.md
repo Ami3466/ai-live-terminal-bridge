@@ -1,5 +1,7 @@
 # Adding Custom Domains to Browser Monitoring
 
+> **Note:** This guide requires the Chrome extension to be installed. See the [extension repository](https://github.com/Ami3466/ai-live-log-bridge-extension) for installation instructions.
+
 By default, the browser extension monitors:
 - `localhost:*`
 - `127.0.0.1:*`
@@ -20,14 +22,7 @@ You might want to add custom domains for:
 
 ### Step 1: Locate the Extension
 
-Find where your extension is installed:
-```bash
-# If you used npm run download-extension:
-cd ~/.ai-live-log-bridge-extension
-
-# If you cloned the repo:
-cd /path/to/ai-live-log-bridge/extension
-```
+Find where your extension is installed. See the [extension repository](https://github.com/Ami3466/ai-live-log-bridge-extension) for the installation location.
 
 ### Step 2: Edit the Manifest
 
