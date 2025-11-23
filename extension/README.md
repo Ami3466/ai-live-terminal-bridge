@@ -33,7 +33,7 @@ npm run install-native-host
 1. Open Chrome and navigate to: `chrome://extensions/`
 2. Enable **Developer mode** (toggle in top right corner)
 3. Click **Load unpacked**
-4. Select this folder: `/path/to/ai-live-log-bridge-extension`
+4. Select the `extension` folder from your project directory
 5. The extension should now appear in your extensions list
 
 ### Step 4: Update Native Host Manifest (Important!)
@@ -120,7 +120,7 @@ Once installed, the extension automatically:
 ## Uninstallation
 
 1. Remove the extension from `chrome://extensions/`
-2. Delete this folder: `/path/to/ai-live-log-bridge-extension`
+2. Remove the extension from Chrome's extensions list
 3. Remove the native messaging host manifest (optional):
    - **macOS**: `~/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.ai_live_log_bridge.browser_monitor.json`
    - **Linux**: `~/.config/google-chrome/NativeMessagingHosts/com.ai_live_log_bridge.browser_monitor.json`
