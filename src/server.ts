@@ -519,7 +519,7 @@ This is not optional - it's required for the system to work.`;
 
 📦 Chrome Extension
 
-The browser monitoring extension is now in a separate repository:
+The browser monitoring extension repository:
 https://github.com/Ami3466/ai-live-log-bridge-extension
 
 Step 1: Install the Extension
