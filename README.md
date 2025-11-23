@@ -6,6 +6,8 @@ A bridge between AI coding assistants and your live logs. Monitor terminal comma
 
 ---
 
+[![AI Live Log Bridge Demo](https://img.youtube.com/vi/4HUUZ3qKCko/maxresdefault.jpg)](https://www.youtube.com/watch?v=4HUUZ3qKCko)
+
 ## The Problem
 
 Modern AI coding creates a "Split Brain" development experience. You work in one environment, the AI works in another, and neither side can clearly see what the other is doing.
