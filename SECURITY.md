@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the two major security and reliability improvements implemented in AI Live Terminal Bridge:
+This document describes the two major security and reliability improvements implemented in AI Live Log Bridge:
 
 1. **Session Isolation** - Prevents interleaved outputs from concurrent commands
 2. **Secret Redaction** - Automatically redacts sensitive information before logging

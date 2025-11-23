@@ -3,8 +3,11 @@
  * Filters sensitive information from command output before logging
  */
 
+// Type for replacement functions
+type ReplacementFunction = (match: string, ...args: any[]) => string;
+
 // Common secret patterns to redact
-const SECRET_PATTERNS = [
+const SECRET_PATTERNS: Array<{ pattern: RegExp; replacement: string | ReplacementFunction }> = [
   // API Keys and tokens (generic)
   {
     pattern: /\b([a-zA-Z0-9_-]*(?:api[_-]?key|token|secret|password|passwd|pwd)[a-zA-Z0-9_-]*)\s*[=:]\s*['"]?([a-zA-Z0-9_\-./+=]{16,})['"]?/gi,
@@ -62,16 +65,17 @@ const SECRET_PATTERNS = [
   },
 
   // Database connection strings
-  // Note: Uses greedy matching to handle passwords containing @ symbols
+  // Handles passwords with special characters including @ symbols
+  // Pattern: protocol://username:password@host
   {
-    pattern: /(mongodb|postgres|mysql|redis):\/\/([^:]+):([^@]+@[^@]+)@/gi,
+    pattern: /(mongodb|postgres|mysql|redis):\/\/([^:]+):([^@]+)@/gi,
     replacement: (_match: string, protocol: string) => `${protocol}://[USER]:[REDACTED]@`
   },
 
-  // Generic passwords in URLs
-  // Note: Matches passwords of 8+ chars, handles @ symbols in passwords
+  // Generic passwords in URLs (any protocol)
+  // Handles basic auth with usernames and passwords
   {
-    pattern: /:\/\/([^:]+):([^@]+@[^@]+)@/g,
+    pattern: /:\/\/([^:@\s]+):([^@\s]+)@/g,
     replacement: () => '://[USER]:[REDACTED]@'
   },
 
@@ -98,6 +102,78 @@ const SECRET_PATTERNS = [
     pattern: /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g,
     replacement: () => 'XXXX-XXXX-XXXX-[REDACTED]'
   },
+
+  // Browser-specific patterns
+
+  // Session cookies and auth tokens in Cookie header
+  {
+    pattern: /Cookie:\s*([^;]+;?\s*)*/gi,
+    replacement: () => 'Cookie: [REDACTED]'
+  },
+
+  // Set-Cookie headers
+  {
+    pattern: /Set-Cookie:\s*[^\n]+/gi,
+    replacement: () => 'Set-Cookie: [REDACTED]'
+  },
+
+  // Authorization header values
+  {
+    pattern: /Authorization:\s*([^\n]+)/gi,
+    replacement: () => 'Authorization: [REDACTED]'
+  },
+
+  // X-API-Key and similar headers
+  {
+    pattern: /X-API-Key:\s*([^\n]+)/gi,
+    replacement: () => 'X-API-Key: [REDACTED]'
+  },
+
+  // localStorage/sessionStorage values in browser logs
+  {
+    pattern: /(localStorage|sessionStorage)\[['"]([^'"]*(?:token|key|secret|password|auth)[^'"]*)['"]\]\s*=\s*['"]([^'"]+)['"]/gi,
+    replacement: (_match: string, storage: string, key: string) => `${storage}['${key}'] = '[REDACTED]'`
+  },
+
+  // Cookie values in JavaScript (document.cookie assignments)
+  {
+    pattern: /document\.cookie\s*=\s*['"]([^'"]+)['"]/gi,
+    replacement: () => `document.cookie = '[REDACTED]'`
+  },
+
+  // JSON Web Tokens in localStorage/cookies (more specific than generic JWT pattern)
+  {
+    pattern: /(['"])(eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,})\1/g,
+    replacement: (_match: string, quote: string) => `${quote}eyJ[REDACTED_JWT]${quote}`
+  },
+
+  // Access tokens in JSON responses
+  {
+    pattern: /['"]access_token['"]\s*:\s*['"]([^'"]+)['"]/gi,
+    replacement: () => `"access_token": "[REDACTED]"`
+  },
+
+  // Refresh tokens in JSON responses
+  {
+    pattern: /['"]refresh_token['"]\s*:\s*['"]([^'"]+)['"]/gi,
+    replacement: () => `"refresh_token": "[REDACTED]"`
+  },
+
+  // CSRF tokens
+  {
+    pattern: /['"]csrf_token['"]\s*:\s*['"]([^'"]+)['"]/gi,
+    replacement: () => `"csrf_token": "[REDACTED]"`
+  },
+
+  // Session IDs in URLs or cookies
+  {
+    pattern: /PHPSESSID=([a-zA-Z0-9]+)/gi,
+    replacement: () => 'PHPSESSID=[REDACTED]'
+  },
+  {
+    pattern: /JSESSIONID=([a-zA-Z0-9]+)/gi,
+    replacement: () => 'JSESSIONID=[REDACTED]'
+  },
 ];
 
 /**
@@ -109,7 +185,11 @@ export function redactSecrets(text: string): string {
   let redacted = text;
 
   for (const { pattern, replacement } of SECRET_PATTERNS) {
-    redacted = redacted.replace(pattern, replacement as any);
+    if (typeof replacement === 'string') {
+      redacted = redacted.replace(pattern, replacement);
+    } else {
+      redacted = redacted.replace(pattern, replacement);
+    }
   }
 
   return redacted;
@@ -122,10 +202,9 @@ export function redactSecrets(text: string): string {
  */
 export function containsSecrets(text: string): boolean {
   return SECRET_PATTERNS.some(({ pattern }) => {
-    // Reset regex lastIndex to ensure clean test
-    if (pattern.global) {
-      pattern.lastIndex = 0;
-    }
-    return pattern.test(text);
+    // Clone the regex to avoid state pollution
+    // Global regexes maintain lastIndex state which can cause bugs
+    const regex = new RegExp(pattern.source, pattern.flags);
+    return regex.test(text);
   });
 }

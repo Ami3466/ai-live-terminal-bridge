@@ -1,12 +1,14 @@
-# AI Live Terminal Bridge
+# AI Live Log Bridge
 
-A bridge between AI coding assistants and your terminal.
+**Give your AI complete visibility into your development environment - terminal AND browser.**
+
+A bridge between AI coding assistants and your live logs. Monitor terminal commands, browser console logs, and network requests automatically.
 
 ---
 
 ## The Problem
 
-Modern AI coding creates a "Split Brain" terminal experience. You work in one terminal, the AI works in another, and neither side can clearly see what the other is doing.
+Modern AI coding creates a "Split Brain" development experience. You work in one environment, the AI works in another, and neither side can clearly see what the other is doing.
 
 ### 1. The AI is Blind to Your Terminal
 
@@ -14,7 +16,7 @@ When you run code in your main terminal, the AI has zero visibility.
 
 It cannot see your server logs, runtime errors, or test failures.
 
-**The Pain:** You are forced into a loop of manual copy pasting just to give the AI eyes.
+**The Pain:** You are forced into a loop of manual copy-pasting just to give the AI eyes.
 
 ### 2. You are Blind to the AI's Terminal
 
@@ -24,93 +26,496 @@ It is hard to follow the live execution, catch warnings, or see the full colored
 
 **The Pain:** You lose control of your environment because you can't easily monitor what the AI is actually running.
 
-### 3. The Broken Feedback Loop
+### 3. The AI is Blind to Your Browser
+
+When debugging frontend issues, the AI cannot see browser console errors, network failures, or JavaScript exceptions.
+
+You must manually open DevTools (F12), switch between Console and Network tabs, and copy-paste everything.
+
+**The Pain:** Frontend debugging becomes a multi-step manual process: check console → copy error → check network → copy request → check server logs → copy again.
+
+### 4. The Broken Feedback Loop
 
 Because of these blind spots, the AI blindly assumes its code works as long as the syntax is correct.
 
-It marks tasks as "Fixed" while your local server is crashing.
+It marks tasks as "Fixed" while your local server is crashing or your browser is throwing errors.
 
-**The Pain:** You are the only one checking reality, manually bridging the gap between two disconnected worlds.
+**The Pain:** You are the only one checking reality, manually bridging the gap between three disconnected worlds: your terminal, the AI's terminal, and your browser.
 
 ---
 
 ## The Solution
 
-This tool creates a shared visibility layer between you and your AI assistant:
+**AI Live Log Bridge** creates automatic visibility into BOTH your terminal AND browser:
 
-**For your terminal:**
-- Wrap any command with `ai` and it logs everything cleanly to disk
-- AI can read these logs via CLI commands or MCP tools
-- You keep full control with colored output in your terminal
+### Terminal Monitoring
+- Wrap commands with `ai npm test` - everything gets logged
+- AI reads logs automatically via MCP tools
+- No more copy-pasting terminal output
 
-**For the AI's terminal:**
-- Run `ai live` in a second terminal to watch AI commands in real-time
-- See what the AI is running, catch errors early, maintain visibility
+### Browser Monitoring
+- Chrome extension captures console logs automatically
+- Network requests monitored in real-time
+- AI reads browser errors directly
+- **No more copy-pasting from F12 DevTools**
 
-**For the feedback loop:**
-- Say "Auto fix this" and the AI scans ALL errors at once
-- No more copy-paste loops or scrolling through terminal output
-- AI reads actual execution results, not assumptions
+### Unified AI Debugging
+```
+You: "Login button doesn't work"
+
+AI: [Calls view_browser_logs]
+    [Calls view_logs]
+
+AI: "I see three issues:
+1. Frontend: TypeError at UserProfile.jsx:42
+2. Network: POST /api/login → 401
+3. Backend: Authentication token expired
+
+Here's the complete fix..."
+```
+
+**No scrolling. No copy-pasting. AI sees everything.**
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
-Install:
+**New here?** → See [QUICKSTART.md](docs/QUICKSTART.md) for a step-by-step guide.
+
+**Below:** Full documentation for reference.
+
+---
+
+## Installation & Setup
+
+### Install the Tool
+
 ```bash
-npm install -g ai-live-terminal-bridge
+npm install -g ai-live-log-bridge
 ```
 
-Use it:
+### Setup Terminal Monitoring
+
+**Run commands with `ai` wrapper:**
 ```bash
 ai npm test
 ai npm run dev
-ai docker-compose up
 ai python manage.py runserver
 ```
 
-Now your terminal output is logged and AI can read it.
+**Configure your AI tool** (Claude Desktop, Cursor, Windsurf, etc.) - see [MCP Setup](#mcp-setup) below.
+
+### Setup Browser Monitoring (Optional but Recommended)
+
+> **Chrome Web Store:** Currently in review. Manual installation required until approved.
+
+**1. Download Chrome Extension:**
+```bash
+npm run download-extension
+```
+
+**2. Install Native Host:**
+```bash
+npm run install-native-host
+```
+
+**3. Load Extension in Chrome:**
+- Open `chrome://extensions/`
+- Enable **Developer mode** (top right)
+- Click **Load unpacked**
+- Select: `~/.ai-live-log-bridge-extension`
+- Copy the **Extension ID**
+
+**4. Configure Extension ID:**
+```bash
+npm run update-extension-id <YOUR_EXTENSION_ID>
+```
+
+**Done!** Now AI can see your terminal AND browser.
+
+**After Chrome Web Store approval:** This becomes a one-click install from the Web Store.
 
 ---
 
-## Two Ways to Use This Tool
+## Seven Powerful MCP Tools
 
-### 🎯 MCP Mode (Recommended)
+### Terminal Monitoring
 
-**Best for:** Any AI tool that supports MCP (Model Context Protocol), including Claude Desktop, Claude Code, Cursor, Windsurf, and many others.
+**`view_logs`** - View all recent terminal output
+- Full command history, output, errors
+- Use when: "What's in the logs?" or "What happened?"
 
-**Setup:** Configure the MCP server once (instructions below). No prompt files needed!
+**`get_crash_context`** - View only errors and crashes
+- Filtered error lines, exceptions, stack traces
+- Use when: "What caused the crash?"
 
-**How it works:**
-1. Run commands with `ai` wrapper: `ai npm test`
-2. The MCP server **automatically guides** AI assistants to use the `ai` wrapper
-3. AI can read logs instantly with MCP tools (no manual commands needed)
-4. Watch live with: `ai live` in another terminal
+**`auto_fix_errors`** - Automatically detect and analyze ALL errors
+- Scans all failures, provides specific fixes
+- Use when: "Auto fix this"
 
-**Why it's better:**
-- ✅ **No prompt files needed** - MCP server provides guidance automatically
-- ✅ **Faster** - Direct tool calls instead of CLI commands
-- ✅ **Auto-fix** - AI scans and analyzes all errors automatically
-- ✅ **Self-documenting** - AI can call `get_usage_instructions` tool when confused
+**`get_usage_instructions`** - Get comprehensive usage guide
+- Installation, troubleshooting, best practices
+- AI calls automatically when confused
 
-**Four MCP Tools Available:**
-1. `view_logs` - View all recent terminal output
-2. `get_crash_context` - View only errors and crashes
-3. `auto_fix_errors` - Automatically detect and analyze all errors
-4. `get_usage_instructions` - Get comprehensive usage instructions
+### Browser Monitoring
 
-### CLI Mode (Alternative Option)
+**`view_browser_logs`** - View browser console logs and network activity
+- Console logs (log, warn, error) + network requests
+- Use when: "What's happening in the browser?"
 
-**Best for:** AI tools that don't support MCP yet (like Aider, Continue, or older versions of AI coding assistants).
+**`get_browser_errors`** - View only browser errors and failed requests
+- Only console.error, exceptions, HTTP 4xx/5xx errors
+- Use when: "Any errors in the browser?"
 
-**Setup:** Requires creating a prompt file with instructions (see below).
+**`get_browser_instructions`** - Get browser setup and troubleshooting guide
+- Extension installation, connection help
+- AI calls when browser monitoring isn't working
 
-**How it works:**
-1. Run commands with `ai` wrapper: `ai npm test`
-2. AI manually runs: `ai --last` command to read logs
-3. Watch live with: `ai live` in another terminal
+---
 
-**To enable auto-wrapping:**
+## MCP Setup
+
+### Claude Desktop
+
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "ai-live-log-bridge": {
+      "command": "ai",
+      "args": ["--server"]
+    }
+  }
+}
+```
+
+Restart Claude Desktop. **That's it!**
+
+### Cursor
+
+Open Settings > Features > Model Context Protocol, add:
+
+```json
+{
+  "ai-live-log-bridge": {
+    "command": "ai",
+    "args": ["--server"]
+  }
+}
+```
+
+Restart Cursor.
+
+### Windsurf
+
+Navigate to MCP configuration in settings, add:
+
+```json
+{
+  "ai-live-log-bridge": {
+    "command": "ai",
+    "args": ["--server"]
+  }
+}
+```
+
+Restart Windsurf.
+
+### Other AI Tools
+
+Works with any tool that supports MCP (Model Context Protocol).
+
+For tools without MCP support (Aider, Continue, etc.), see [CLI Mode](#cli-mode) below.
+
+---
+
+## Browser Setup
+
+> **Note:** Chrome Web Store submission in progress. Once approved, this will be simplified to a single click!
+
+### Current Setup (Manual - Temporary)
+
+**Step 1: Install Native Messaging Host**
+
+```bash
+npm run install-native-host
+```
+
+**Step 2: Load Chrome Extension**
+
+> ⚠️ **IMPORTANT**: Do NOT place this project on your Desktop. Chrome blocks extensions from Desktop for security reasons. Keep it in Documents, Projects, or another non-Desktop location.
+
+1. Open Chrome: `chrome://extensions/`
+2. Enable **Developer mode** (toggle in top right)
+3. Click **Load unpacked**
+4. Select the `extension` folder from this project (e.g., `/Users/yourname/Projects/ai-live-log-bridge/extension`)
+5. Extension loads ✅
+
+**Step 3: Configure Extension ID**
+
+⚠️ **CRITICAL STEP** - Chrome will block the extension if this isn't done correctly!
+
+```bash
+# 1. Get your Extension ID from chrome://extensions/
+#    It's the 32-character string under the extension name
+#    Example: mgnfhhihoknkoomfinmldenmmglebmha
+
+# 2. Run this command with YOUR extension ID:
+npm run update-extension-id <YOUR_EXTENSION_ID>
+
+# 3. RESTART CHROME COMPLETELY (quit and reopen)
+```
+
+**Important Notes:**
+- ⚠️ **Every time you reload the extension**, Chrome may generate a new ID
+- ⚠️ If you see "Access to the specified native messaging host is forbidden", re-run `update-extension-id` with the new ID
+- ⚠️ Always restart Chrome completely after updating the ID (not just reload the page)
+
+### Future Setup (After Chrome Web Store Approval)
+
+**This is what setup will look like soon:**
+
+```bash
+# 1. Install npm package
+npm install -g ai-live-log-bridge
+
+# 2. Install native host (already knows the extension ID!)
+npm run install-native-host
+
+# 3. Install extension from Chrome Web Store
+# Just click: https://chrome.google.com/webstore/[coming-soon]
+# Done!
+```
+
+No copying extension IDs. No manual configuration. Just install and go!
+
+---
+
+### Test It
+
+```bash
+# Start dev server
+ai npm run dev
+
+# Open localhost:3000 in Chrome
+# Open DevTools (F12), run:
+console.log('Test message');
+console.error('Test error');
+
+# Ask AI:
+"Check the browser console for errors"
+
+# AI calls get_browser_errors tool
+# AI sees everything - no copy-paste needed!
+```
+
+---
+
+## What Gets Monitored?
+
+### Terminal Monitoring
+
+✅ **All Command Output**
+- stdout and stderr (colors preserved in terminal)
+- Exit codes
+- Timestamps
+- Full command history
+
+✅ **Secret Redaction**
+- API keys → `[REDACTED]`
+- Tokens → `[REDACTED]`
+- Passwords → `[REDACTED]`
+- Database credentials → `[REDACTED]`
+- 15+ secret patterns covered
+
+✅ **Session Isolation**
+- Each command gets unique session ID
+- Parallel commands don't interleave
+- Clean, organized logs
+
+### Browser Monitoring
+
+✅ **Console Logs**
+- console.log(), console.warn(), console.error(), console.debug()
+- JavaScript errors with full stack traces
+- Unhandled promise rejections
+
+✅ **Network Activity**
+- Fetch and XMLHttpRequest calls
+- HTTP methods, URLs, status codes
+- Request/response timing
+- Failed requests (4xx, 5xx errors)
+
+✅ **Performance Metrics** (Optional)
+- Memory usage
+- Page load times
+
+✅ **Security**
+- **Development sites only** - Monitors `localhost:*`, `127.0.0.1:*`, and development tunnels (ngrok, localtunnel, Cloudflare Tunnel)
+- Cannot access regular websites (Google, GitHub, production sites, etc.)
+- Cookies redacted
+- Authorization headers redacted
+- All data stays on your machine
+
+---
+
+## Real-World Examples
+
+### Example 1: Test Failures
+
+**Before:**
+```bash
+npm test
+# 15 tests fail
+# You scroll, copy first error
+# AI asks for more context
+# You copy more errors
+# AI asks about line 47
+# Repeat...
+```
+
+**After:**
+```bash
+ai npm test
+# 15 tests fail
+
+You: "Auto fix this"
+AI: [Calls auto_fix_errors]
+AI: "Found 15 test failures:
+1. TypeError at user.test.ts:42 - Add null check
+2. ReferenceError at api.test.ts:15 - Import mockData
+3. Port 3000 EADDRINUSE - Kill existing process
+[...and 12 more with specific fixes]
+
+Would you like me to apply these fixes?"
+```
+
+No scrolling. No copy-pasting. AI sees ALL errors at once.
+
+### Example 2: Frontend Bug
+
+**Before:**
+```
+You: "Login button doesn't work"
+AI: "Check the browser console"
+You: [F12, copies] "TypeError: Cannot read property 'id'"
+AI: "Check the network tab"
+You: [Network, copies] "POST /api/login → 401"
+AI: "Check server logs"
+You: [Terminal, scrolls, copies] "Invalid token"
+```
+
+**After:**
+```
+You: "Login button doesn't work"
+
+AI: [Calls view_browser_logs]
+    [Calls view_logs]
+
+AI: "I see the complete picture:
+- Frontend: TypeError at UserProfile.jsx:42 (missing null check)
+- Network: POST /api/login → 401 Unauthorized
+- Backend: Authentication token expired
+
+Here's the fix for all three layers..."
+```
+
+**AI sees terminal AND browser. Instantly.**
+
+### Example 3: Hidden Terminal Problem
+
+**Before:**
+```
+# Claude Code runs in hidden terminal
+npm run dev
+
+# You try to run your app
+npm start
+# Error: EADDRINUSE port 3000
+
+# You have no idea what's running
+# AI can't see the hidden terminal
+```
+
+**After:**
+```
+# Run with ai wrapper
+ai npm run dev
+
+You: "What's on port 3000?"
+AI: [Calls view_logs]
+AI: "Your dev server is running on port 3000 (started 2 minutes ago)"
+```
+
+---
+
+## How It Works
+
+### Terminal Flow
+```
+You run: ai npm run dev
+       ↓
+Terminal shows full output (colors preserved)
+       ↓
+Session isolation: unique session ID
+       ↓
+Secret redaction: API_KEY=sk-xxx → [REDACTED]
+       ↓
+Logs written to: ~/.mcp-logs/active/session-<id>.log
+       ↓
+AI reads via: view_logs / auto_fix_errors / get_crash_context tools
+```
+
+### Browser Flow
+```
+You open: localhost:3000 in Chrome
+       ↓
+Extension captures: console logs, network requests, errors
+       ↓
+Sent to: Native messaging host (Node.js)
+       ↓
+Secret redaction: Cookies/tokens → [REDACTED]
+       ↓
+Logs written to: ~/.mcp-logs/browser/active/browser-<id>.log
+       ↓
+AI reads via: view_browser_logs / get_browser_errors tools
+```
+
+---
+
+## Configuration
+
+### Log Retention
+
+Control how long logs are kept using `AI_KEEP_LOGS` environment variable (in days):
+
+```bash
+# Delete logs immediately when command completes (cleanest)
+export AI_KEEP_LOGS=0
+
+# Keep logs for 1 day (default)
+export AI_KEEP_LOGS=1
+
+# Keep logs for 7 days
+export AI_KEEP_LOGS=7
+
+# Keep logs for 30 days
+export AI_KEEP_LOGS=30
+```
+
+**Why control retention?**
+- `AI_KEEP_LOGS=0`: AI only sees live/running commands (cleanest, recommended for LLMs)
+- `AI_KEEP_LOGS=1`: Keep recent logs for debugging (balanced, default)
+- `AI_KEEP_LOGS=7+`: Keep logs longer for audit trails
+
+---
+
+## CLI Mode (For Non-MCP Tools)
+
+If your AI tool doesn't support MCP (Aider, Continue, older tools), use CLI mode:
+
+### Setup
 
 Create `.prompts/ai-wrapper.md` (or `.cursorrules`, `.windsurfrules`, etc.):
 
@@ -129,554 +534,92 @@ Examples:
 When debugging, run `ai --last 200` to see recent output.
 ```
 
-Ask your AI to run commands and it will automatically use the wrapper.
-
----
-
-## MCP Mode Setup
-
-### Claude Desktop Setup
-
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "ai-live-terminal-bridge": {
-      "command": "ai",
-      "args": ["--server"]
-    }
-  }
-}
-```
-
-Restart Claude Desktop.
-
-**That's it!** No prompt files needed. The MCP server automatically guides Claude to use the `ai` wrapper.
-
-### Cursor Setup
-
-Open Cursor Settings > Features > Model Context Protocol
-
-Add new MCP server:
-
-```json
-{
-  "ai-live-terminal-bridge": {
-    "command": "ai",
-    "args": ["--server"]
-  }
-}
-```
-
-Restart Cursor.
-
-**That's it!** No prompt files needed. The MCP server automatically guides Cursor to use the `ai` wrapper.
-
-### Windsurf Setup
-
-Open Windsurf Settings and navigate to MCP configuration
-
-Add new MCP server:
-
-```json
-{
-  "ai-live-terminal-bridge": {
-    "command": "ai",
-    "args": ["--server"]
-  }
-}
-```
-
-Restart Windsurf.
-
-**That's it!** No prompt files needed. The MCP server automatically guides Windsurf to use the `ai` wrapper.
-
-### Using MCP Mode
-
-**Just ask naturally:**
-- "Run the tests" - AI will use `ai npm test` automatically
-- "What's in the logs?" - AI calls `view_logs` tool
-- "Auto fix this" - AI calls `auto_fix_errors` tool
-- "What caused the crash?" - AI calls `get_crash_context` tool
-
-The MCP server provides automatic guidance through tool descriptions. If the AI is confused, it can call the `get_usage_instructions` tool for comprehensive help.
-
----
-
-## MCP Mode vs CLI Mode
-
-### 🎯 MCP Mode (Recommended)
-
-**Configuration:**
-- ✅ **Zero prompt files required**
-- Configure MCP server once in your AI tool
-- MCP server automatically guides AI assistants
-
-**How it works:**
-1. You configure your AI tool to load MCP server
-2. MCP server provides automatic guidance through tool descriptions
-3. AI calls tools directly: `view_logs`, `auto_fix_errors`, `get_crash_context`, `get_usage_instructions`
-4. No manual `ai --last` commands needed
-
-**Advantages:**
-- ✅ **No prompt files needed** - self-documenting
-- ✅ Faster - tools called directly, no CLI overhead
-- ✅ Auto-fix - AI scans and analyzes all errors automatically
-- ✅ Better for live conversation - AI can check logs naturally
-- ✅ Four powerful tools instead of one CLI command
-
-**Works with:**
-- Any AI tool that supports MCP (Model Context Protocol)
-- Claude Desktop, Claude Code, Cursor, Windsurf, and many others
-
-### CLI Mode (Alternative)
-
-**Configuration:**
-- ⚙️ **Requires creating prompt files** (`.prompts/ai-wrapper.md`, `.cursorrules`, etc.)
-- Must manually configure AI to use `ai` wrapper
-- Different file per AI tool
-
-**How it works:**
-1. You create prompt file telling AI to wrap commands with `ai`
-2. AI runs `ai --last` to read logs
-3. Everything works through terminal commands
-
-**Advantages:**
-- Works with any AI tool that has terminal access
-- No MCP setup required
-- Uses fewer tokens
-
-**Disadvantages:**
-- ⚙️ **Manual setup required** - must create prompt files
-- Slower - AI must manually run `ai --last` command
-- More verbose - requires explicit CLI commands
-- No auto-fix tool
-- No usage instructions tool
-
----
-
-## The Four MCP Tools
-
-When using MCP mode, AI assistants get four powerful tools:
-
-### `view_logs`
-
-View ALL recent terminal output - unfiltered, everything.
-
-**You ask:** "What's in the logs?"
-
-**Claude calls:** `view_logs(lines: 100)`
-
-**Claude sees:** Full terminal output - commands, output, success messages, errors.
-
-**Use for:** Checking what ran, viewing command progress, understanding session history.
-
-### `get_crash_context`
-
-Shows ONLY errors and crashes - filters out normal output.
-
-**You ask:** "What caused the crash?"
-
-**Claude calls:** `get_crash_context(lines: 100)`
-
-**Claude sees:** Only error lines, exceptions, stack traces.
-
-**Use for:** Quick error scanning, debugging crashes, focusing on problems.
-
-### `auto_fix_errors`
-
-Automatically detects and analyzes ALL errors in logs.
-
-**Detects:**
-- JavaScript/TypeScript errors (TypeError, SyntaxError, ReferenceError)
-- Build failures (webpack, vite, tsc)
-- Test failures (jest, mocha, vitest)
-- Non-zero exit codes
-- Stack traces (auto-grouped, deduplicated)
-- Runtime crashes
-
-**Smart features:**
-- Deduplicates repeated errors
-- Groups related stack traces
-- Prioritizes by severity
-- Shows file paths and line numbers
-- Extracts relevant code context
-
-**You ask:** "Auto fix this"
-
-**Claude calls:** `auto_fix_errors(lines: 200)`
-
-**Claude responds:**
-```
-I found 3 errors in your test run:
-
-1. TypeError: Cannot read property 'id' of undefined
-   File: src/user.ts:42
-   Fix: Add null check before accessing user.id
-
-2. ReferenceError: 'mockData' is not defined
-   File: tests/api.test.ts:15
-   Fix: Import mockData from test fixtures
-
-3. Port 3000 already in use (EADDRINUSE)
-   Fix: Kill the process on port 3000 first
-
-Would you like me to apply these fixes?
-```
-
-No scrolling. No copy-pasting. AI finds and analyzes everything.
-
-### `get_usage_instructions`
-
-Get comprehensive instructions on using ai-live-terminal-bridge.
-
-**You ask:** "How do I use this tool?" or AI calls it automatically when confused
-
-**Claude calls:** `get_usage_instructions()`
-
-**Claude sees:** Complete guide including:
-- Critical requirement to use `ai` wrapper for all commands
-- Examples of correct vs incorrect usage
-- When to use each MCP tool
-- Why the `ai` wrapper matters
-
-**Use for:** Onboarding, troubleshooting, understanding the system.
-
----
-
-## How It Works
-
-```
-You run: ai npm run dev
-       ↓
-Terminal shows full output (colors preserved)
-       ↓
-Session isolation: unique session ID (e.g., session-20251122-a3f2.log)
-       ↓
-Secret redaction: API_KEY=sk-xxx → [REDACTED]
-       ↓
-Logs written to: ~/.mcp-logs/session-20251122-a3f2.log
-       ↓
-AI reads via:
-- CLI mode: ai --last command
-- MCP mode: view_logs / get_crash_context / auto_fix_errors tools
-```
-
-### Security Features
-
-**Automatic Secret Redaction:**
-- API keys, tokens, passwords redacted before logging
-- Protects AWS keys, GitHub tokens, Stripe keys, OpenAI keys, database credentials
-- Your terminal shows real output, logs contain `[REDACTED]`
-- Prevents secrets from being sent to AI models
-
-**Session Isolation:**
-- Each command gets unique session ID
-- Concurrent commands write to separate log files
-- No interleaved outputs when running multiple commands
-- Perfect for running parallel processes
-
----
-
-## Configuration by AI Tool
-
-### Claude Code (VSCode Extension) - MCP Supported
-
-**Use MCP Mode**
-
-Claude Code supports MCP servers natively. The MCP server will automatically guide Claude to use the `ai` wrapper.
-
-**Setup:**
-1. Configure the MCP server (see MCP Mode Setup section above)
-2. That's it! No prompt files needed!
-
-The MCP server provides automatic guidance, so you don't need `.prompts/ai-wrapper.md` or any other configuration files.
-
-### Cursor - MCP Supported
-
-**Use MCP Mode**
-
-Cursor supports MCP servers natively. The MCP server will automatically guide Cursor to use the `ai` wrapper.
-
-**Setup:**
-1. Configure the MCP server (see MCP Mode Setup section above)
-2. That's it! No prompt files needed!
-
-The MCP server provides automatic guidance, so you don't need `.cursorrules` or any other configuration files.
-
-### Windsurf - MCP Supported
-
-**Use MCP Mode**
-
-Windsurf supports MCP servers natively. The MCP server will automatically guide Windsurf to use the `ai` wrapper.
-
-**Setup:**
-1. Configure the MCP server (see MCP Mode Setup section above)
-2. That's it! No prompt files needed!
-
-The MCP server provides automatic guidance, so you don't need `.windsurfrules` or any other configuration files.
-
-### Claude Desktop (macOS/Windows)
-
-**Use MCP Mode**
-
-Claude Desktop uses MCP natively for full functionality.
-
-**Step 1:** Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "ai-live-terminal-bridge": {
-      "command": "ai",
-      "args": ["--server"]
-    }
-  }
-}
-```
-
-**Step 2:** Restart Claude Desktop.
-
-**Step 3:** Verify: Ask Claude "What MCP tools do you have?"
-
-You should see `view_logs`, `get_crash_context`, `auto_fix_errors`, and `get_usage_instructions`.
-
-**That's it!** No prompt files needed. Claude will automatically use the `ai` wrapper when running commands.
-
-### Cline (VSCode Extension) - CLI Mode Only
-
-Cline doesn't support MCP yet. Use CLI mode.
-
-**Step 1:** Create `.prompts/ai-wrapper.md`:
-
-```markdown
-# Terminal Command Rules
-
-Always run terminal commands using the `ai` wrapper.
-
-Format: ai <command>
-
-Examples:
-- ai npm test
-- ai npm start
-- ai python script.py
-
-When debugging, run `ai --last 200` to see recent output.
-```
-
-**Step 2:** Cline will automatically wrap commands with `ai`.
-
-**Step 3:** Ask Cline: "Run ai --last 100 to see the output"
-
-### Continue (VSCode Extension) - CLI Mode Only
-
-Continue doesn't support MCP yet. Use CLI mode.
-
-**Step 1:** Create `.continuerules` or add to Continue config:
-
-```markdown
-# Terminal Command Rules
-
-Always run terminal commands using the `ai` wrapper.
-
-Format: ai <command>
-
-Examples:
-- ai npm test
-- ai npm start
-- ai python script.py
-
-When debugging, run `ai --last 200` to see recent output.
-```
-
-**Step 2:** Continue will automatically wrap commands with `ai`.
-
-**Step 3:** Ask Continue: "Check the logs with ai --last"
-
-### Aider - CLI Mode Only
-
-Aider doesn't support MCP yet. Use CLI mode.
-
-**Step 1:** Create `.aider.conf.yml`:
-
-```yaml
-# Aider configuration
-edit-format: whole
-
-# Add this as a system message
-system-prompt: |
-  Always run terminal commands using the `ai` wrapper.
-
-  Examples:
-  - ai npm test
-  - ai npm start
-
-  When debugging, run `ai --last 200` to see recent output.
-```
-
-**Step 2:** Start Aider and ask it to run commands.
-
-**Step 3:** In Aider chat: "Run ai --last to show recent terminal output"
-
-### Generic Setup (Any AI Tool)
-
-**Step 1:** Find your AI tool's rules/instructions file:
-- `.cursorrules` (Cursor)
-- `.windsurfrules` (Windsurf)
-- `.prompts/` folder (Claude Code)
-- `.aider.conf.yml` (Aider)
-- `.continuerules` (Continue)
-- System prompts (ChatGPT, etc.)
-
-**Step 2:** Add these rules:
-
-```markdown
-# Terminal Command Rules
-
-Always run terminal commands using the `ai` wrapper.
-
-Format: ai <command>
-
-Examples:
-- ai npm test
-- ai npm start
-- ai python script.py
-
-When debugging, run `ai --last 200` to see recent output.
-```
-
-**Step 3:** Test by asking your AI to run a command.
-
-**Step 4:** Verify by asking your AI to run `ai --last`.
-
----
-
-## Real-World Examples
-
-### Example 1: Hidden Terminal Problem
-
-**Before:**
-```bash
-# Claude Code runs this in a hidden terminal
-npm run dev
-
-# You try to run your app
-npm start
-# Error: EADDRINUSE port 3000
-
-# You have no idea what's running
-# AI can't see the hidden terminal, so it guesses
-```
-
-**After:**
-```bash
-# Run everything through `ai`
-ai npm run dev
-
-# Ask: "Run ai --last and tell me what's on port 3000"
-# AI reads the log and sees: "Server running on http://localhost:3000"
-# AI answers: "Your dev server is using port 3000"
-```
-
-### Example 2: Test Failures
-
-**Before:**
-```bash
-npm test
-# 15 tests fail
-# You copy-paste the first error
-# AI asks for more context
-# You copy-paste more
-# AI asks about line 47
-# Repeat...
-```
-
-**After:**
-```bash
-ai npm test
-# 15 tests fail
-
-# You: "Auto fix this"
-# AI sees ALL 15 failures at once
-# AI provides comprehensive fixes
-
-# No copy-pasting. No scrolling.
-```
-
-### Example 3: Build Debugging
-
-**Before:**
-```bash
-npm run build
-# Build fails
-# You scroll up in terminal
-# Copy the error
-# Paste to AI
-# AI says "can I see more context?"
-# Repeat...
-```
-
-**After:**
-```bash
-ai npm run build
-# Build fails
-
-# You: "Check the logs"
-# AI runs `ai --last`
-# AI sees full build output + error + context
-# AI: "The issue is in webpack config line 42..."
-```
-
----
-
-## Common Workflows
-
-### Debugging Test Failures
+### Usage
 
 ```bash
-# Run tests
+# Run commands with ai wrapper
 ai npm test
 
-# Tests fail? Ask:
-"Auto fix this"
+# AI manually reads logs
+ai --last 100
 
-# AI will:
-# 1. Call auto_fix_errors (MCP) or run ai --last (CLI)
-# 2. Analyze all failures
-# 3. Provide specific fixes with line numbers
+# Watch live in another terminal
+ai live
 ```
 
-### Debugging Server Crashes
+**MCP mode is recommended** - automatic, faster, more powerful.
 
+---
+
+## Security Features
+
+### Secret Redaction
+
+**Terminal patterns (15+):**
+- API keys: AWS, GitHub, OpenAI, Anthropic, Stripe
+- Tokens: Bearer, JWT, session tokens
+- Passwords: Database URLs, export statements
+- Private keys: PEM, OpenSSH
+- Credit cards: Basic validation
+
+**Browser patterns (12+):**
+- Cookies: Session IDs, auth cookies
+- Headers: Authorization, X-API-Key, Set-Cookie
+- Storage: localStorage/sessionStorage tokens
+- JSON responses: access_token, refresh_token
+- Session IDs: PHPSESSID, JSESSIONID
+
+**How it works:**
+- Secrets redacted BEFORE writing to logs
+- Your terminal shows real output
+- Logs contain `[REDACTED]`
+- Secrets never reach AI models
+
+### Session Isolation
+
+- Each terminal command → unique session ID
+- Each browser session → unique session ID
+- Parallel commands don't interleave
+- Clean, organized logs per task
+
+### Project-Based Filtering
+
+- Logs filtered by project directory (`process.cwd()`)
+- AI only sees logs from current project
+- No cross-project contamination
+
+---
+
+## Troubleshooting
+
+### `ai: command not found`
+
+Restart terminal:
 ```bash
-# Start server
-ai npm start
-
-# Crashes? Ask:
-"What happened? Check the logs"
-
-# AI will:
-# 1. Read recent logs
-# 2. Identify crash cause
-# 3. Suggest fixes
+hash -r   # Bash/Zsh
+rehash    # Fish
 ```
 
-### Build Debugging
+### MCP tools not showing up
 
-```bash
-# Run build
-ai npm run build
+1. Check JSON syntax in config
+2. Run `which ai` to verify installation
+3. Test: `ai --server` should start without errors
+4. Restart AI tool completely
 
-# Build fails? Ask:
-"Auto fix this"
+### Extension not connecting
 
-# AI finds:
-# - Syntax errors
-# - Type errors
-# - Missing dependencies
-# - Configuration issues
-```
+1. Verify native host installed: `npm run install-native-host`
+2. Check extension ID matches manifest
+3. Refresh localhost page
+4. Check extension service worker console (chrome://extensions/)
+
+### No browser logs appearing
+
+1. Make sure you're on a **localhost** page
+2. Extension only monitors `localhost:*` and `127.0.0.1:*`
+3. Check extension enabled in chrome://extensions/
+4. Try: `cat ~/.mcp-logs/browser/active/*.log`
 
 ---
 
@@ -690,137 +633,75 @@ No. Overhead is less than 1ms. Commands run at full speed.
 
 Yes:
 ```bash
-# View all session files
-ls ~/.mcp-logs/
+# Terminal logs
+ls ~/.mcp-logs/active/
+cat ~/.mcp-logs/active/session-*.log
 
-# Read a specific session
-cat ~/.mcp-logs/session-20251122-a3f2.log
+# Browser logs
+ls ~/.mcp-logs/browser/active/
+cat ~/.mcp-logs/browser/active/browser-*.log
 
-# View recent logs from all sessions
+# View all recent (terminal and browser)
 ai --last 100
 ```
 
 ### What if I forget to use `ai`?
 
-Those commands won't be logged. Everything still works, you just won't have logs for them.
+Commands still work, just won't be logged. AI won't be able to read output.
+
+### Does browser monitoring work on all sites?
+
+**No - development sites only** (by design, for security):
+- ✅ `localhost:3000`, `localhost:8080`, etc.
+- ✅ `127.0.0.1:*`
+- ✅ `https://*.ngrok.io` (ngrok tunnels)
+- ✅ `https://*.ngrok-free.app` (ngrok free)
+- ✅ `https://*.loca.lt` (localtunnel)
+- ✅ `https://*.trycloudflare.com` (Cloudflare Tunnel)
+- ❌ Regular websites (google.com, github.com, etc.)
+- ❌ Production sites
+
+This prevents the extension from tracking your general browsing while supporting common development workflows like ngrok for mobile testing, webhook testing, and sharing with teammates.
+
+**Want to add custom domains?** See [Custom Domains Guide](docs/guides/custom-domains.md) for instructions on adding staging environments, Vercel/Netlify previews, or other tunnel services.
 
 ### Does this work with Docker?
 
 Yes. `ai docker-compose up`, `ai docker run`, etc. all work.
 
-### Can AI assistants other than Claude use this?
+### Can other AI tools use this?
 
-Yes! Both modes work with any AI:
-- **MCP Mode:** Works with any AI tool that supports the Model Context Protocol (Claude Desktop, Claude Code, Cursor, Windsurf, etc.)
-- **CLI Mode:** Works with any AI that has terminal access (Aider, Continue, ChatGPT with code interpreter, etc.)
+Yes!
+- **MCP Mode:** Any AI supporting Model Context Protocol
+- **CLI Mode:** Any AI with terminal access
+
+Works with: Claude Desktop, Claude Code, Cursor, Windsurf, Aider, Continue, ChatGPT with code interpreter, and more.
 
 ### What about CI/CD?
 
 This is designed for local development. In CI, use native logging.
-
-### How secure is secret redaction?
-
-- Secrets are redacted before writing to log files
-- Your terminal shows real output; only logs are redacted
-- Covers 15+ secret patterns: API keys, tokens, passwords, database URLs, JWT tokens, private keys
-- If a pattern is missed, you can add it to `src/redact-secrets.ts`
-- Secrets never leave your machine or reach AI models
-
-### What happens with concurrent commands?
-
-- Each command gets a unique session ID and separate log file
-- Outputs never interleave or mix together
-- Example: `ai npm test` and `ai npm start` create `session-xxx.log` and `session-yyy.log`
-- The `ai --last` command reads from all recent sessions
-
-### Should I add .mcp-logs to .gitignore?
-
-Yes. While logs are stored in your home directory (`~/.mcp-logs`), add this to your global `.gitignore`:
-
-```bash
-# Add to ~/.gitignore_global
-.mcp-logs/
-```
-
-Configure global gitignore:
-```bash
-git config --global core.excludesfile ~/.gitignore_global
-echo ".mcp-logs/" >> ~/.gitignore_global
-```
-
----
-
-## Configuration
-
-### Log Retention
-
-Control how long completed command logs are kept using the `AI_KEEP_LOGS` environment variable (in days).
-
-**Default: 1 day** - Completed logs are kept for 1 day, then auto-cleaned to prevent confusing the AI with old output.
-
-**Configuration options:**
-```bash
-# Delete logs immediately when command completes (cleanest for LLM)
-export AI_KEEP_LOGS=0
-ai npm test
-
-# Keep logs for 1 day (default - no need to set)
-export AI_KEEP_LOGS=1
-ai npm test
-
-# Keep logs for 7 days
-export AI_KEEP_LOGS=7
-ai npm test
-
-# Keep logs for 30 days
-export AI_KEEP_LOGS=30
-ai npm test
-```
-
-**Why control log retention?**
-- ✅ **AI_KEEP_LOGS=0**: LLM only sees live/running commands (cleanest, recommended)
-- ✅ **AI_KEEP_LOGS=1**: Keep recent logs for debugging (balanced, default)
-- ✅ **AI_KEEP_LOGS=7+**: Keep logs longer for audit trails or reference
-
-**Cleanup behavior:**
-- Completed logs: Kept for N days (default: 1 day), then auto-cleaned
-- Stale sessions: Cleaned on next `ai` command based on `AI_KEEP_LOGS` setting
-- Interrupted sessions: Cleaned up when they exceed the retention period
-
----
-
-## Troubleshooting
-
-### `ai: command not found`
-
-Restart your terminal:
-```bash
-hash -r   # Bash/Zsh
-rehash    # Fish
-```
-
-### MCP tools not showing up
-
-1. Check JSON syntax in config file
-2. Run `which ai` to verify installation
-3. Test: `ai --server` should start without errors
-4. Restart Claude Desktop completely
-
-### Logs not appearing
-
-Make sure you're using `ai`:
-```bash
-ai npm start   # Logged
-npm start      # Not logged
-```
 
 ---
 
 ## Uninstall
 
 ```bash
-npm uninstall -g ai-live-terminal-bridge
+# Remove tool
+npm uninstall -g ai-live-log-bridge
+
+# Remove logs
 rm -rf ~/.mcp-logs
+
+# Remove Chrome extension
+# 1. Go to chrome://extensions/
+# 2. Remove "AI Live Log Bridge"
+
+# Remove extension from Chrome (go to chrome://extensions/ and remove it)
+# Extension folder is in the project at: extension/
+
+# Remove native messaging manifest (optional)
+# macOS: ~/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.ai_live_log_bridge.browser_monitor.json
+# Linux: ~/.config/google-chrome/NativeMessagingHosts/com.ai_live_log_bridge.browser_monitor.json
 ```
 
 Remove from your AI tool's MCP config if added.
@@ -835,8 +716,8 @@ MIT License - See LICENSE for details.
 
 ## Contributing
 
-Issues and PRs welcome at [GitHub](https://github.com/Ami3466/ai-live-terminal-bridge).
+Issues and PRs welcome at [GitHub](https://github.com/Ami3466/ai-live-log-bridge).
 
 ---
 
-**Stop coding blind. Give your AI terminal access.**
+**Stop coding blind. Give your AI complete visibility - terminal AND browser.**
