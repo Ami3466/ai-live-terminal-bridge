@@ -168,7 +168,6 @@ const possibleExtensionPaths = [
   join(homedir(), '.ai-live-log-bridge-extension'),
   join(projectRoot, 'extension'),
   join(homedir(), 'ai-live-log-bridge-extension'),
-  join(homedir(), 'Desktop', 'ai-live-log-bridge-extension'),
   join(homedir(), 'Downloads', 'ai-live-log-bridge-extension'),
 ];
 

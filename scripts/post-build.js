@@ -9,6 +9,7 @@ import { writeFileSync, chmodSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { execSync } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -16,7 +17,17 @@ const __dirname = dirname(__filename);
 const projectRoot = join(__dirname, '..');
 const wrapperPath = join(projectRoot, 'dist', 'browser', 'native-host');
 
-const wrapperContent = `#!/usr/bin/env node
+// Detect node path at build time for Chrome's native messaging
+// Chrome doesn't resolve PATH properly, so we need an absolute path
+let nodePath;
+try {
+  nodePath = execSync('which node', { encoding: 'utf-8' }).trim();
+} catch (err) {
+  // Fallback to common paths
+  nodePath = '/usr/bin/env node';
+}
+
+const wrapperContent = `#!${nodePath}
 
 /**
  * Native Messaging Host Wrapper
@@ -37,10 +48,7 @@ process.chdir(join(__dirname, '..', '..'));
 const { NativeHost } = await import('./native-host.js');
 
 const host = new NativeHost();
-host.start().catch(err => {
-  console.error('Native host failed to start:', err);
-  process.exit(1);
-});
+await host.start();
 `;
 
 console.log('📝 Creating native host wrapper...');

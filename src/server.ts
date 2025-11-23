@@ -8,7 +8,7 @@ import {
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { existsSync } from 'fs';
-import { LOG_FILE, readRecentLogs, getSessionLogFiles } from './storage.js';
+import { LOG_FILE, readRecentLogs, getSessionLogFiles, getMostRecentActiveProjectDir } from './storage.js';
 import { readRecentBrowserLogs, getBrowserSessionLogFiles } from './browser/browser-storage.js';
 
 /**
@@ -398,7 +398,11 @@ This is not optional - it's required for the system to work.`;
       if (name === 'view_browser_logs') {
         const lines = (args?.lines as number) || 100;
 
-        const sessionFiles = getBrowserSessionLogFiles(undefined, process.cwd(), true);
+        // Use the most recent active terminal session's project directory
+        // This ensures browser logs are matched to the correct project
+        const projectDir = getMostRecentActiveProjectDir() || process.cwd();
+
+        const sessionFiles = getBrowserSessionLogFiles(undefined, projectDir, false);
 
         if (sessionFiles.length === 0) {
           // Provide more detailed troubleshooting
@@ -432,7 +436,7 @@ This is not optional - it's required for the system to work.`;
           };
         }
 
-        const recentLines = readRecentBrowserLogs(lines, 10, process.cwd(), true);
+        const recentLines = readRecentBrowserLogs(lines, 10, projectDir, false);
 
         return {
           content: [
@@ -447,7 +451,10 @@ This is not optional - it's required for the system to work.`;
       if (name === 'get_browser_errors') {
         const lines = (args?.lines as number) || 100;
 
-        const sessionFiles = getBrowserSessionLogFiles(undefined, process.cwd(), true);
+        // Use the most recent active terminal session's project directory
+        const projectDir = getMostRecentActiveProjectDir() || process.cwd();
+
+        const sessionFiles = getBrowserSessionLogFiles(undefined, projectDir, false);
 
         if (sessionFiles.length === 0) {
           return {
@@ -460,7 +467,7 @@ This is not optional - it's required for the system to work.`;
           };
         }
 
-        const content = readRecentBrowserLogs(lines, 10, process.cwd(), true);
+        const content = readRecentBrowserLogs(lines, 10, projectDir, true);
         const recentLines = content.split('\n');
 
         // Browser error patterns

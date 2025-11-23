@@ -10,6 +10,7 @@ import {
   markBrowserSessionCompleted,
   cleanupStaleBrowserSessions
 } from './browser-session.js';
+import { getMostRecentActiveProjectDir } from '../storage.js';
 
 /**
  * Native Messaging Host
@@ -162,13 +163,22 @@ export class NativeHost {
 
   /**
    * Validate and sanitize project directory path
-   * For browser monitoring, we always use the native host's working directory
+   * For browser monitoring, try to detect the actual project directory from running terminal sessions
    * This ensures browser logs are grouped with the project they belong to
    */
   private validateProjectDir(_projectDir: string | undefined): string {
-    // For browser sessions, always use the native host's cwd as the project identifier
-    // This matches how terminal sessions work and allows proper filtering by MCP
-    // The URL is still logged separately for reference
+    // Use the most recent active terminal session's project directory
+    // This matches browser sessions to the project that's running the dev server
+    const detectedDir = getMostRecentActiveProjectDir();
+
+    console.error(`[Native Host] Detected project dir: ${detectedDir || 'null'}`);
+    console.error(`[Native Host] Fallback cwd: ${process.cwd()}`);
+
+    if (detectedDir) {
+      return detectedDir;
+    }
+
+    // Fallback to current working directory
     return process.cwd();
   }
 
@@ -322,7 +332,7 @@ export class NativeHost {
       // Write header
       const timestamp = new Date().toISOString();
       const urlPart = url ? `\n[${timestamp}] URL: ${url}` : '';
-      const header = `${'='.repeat(80)}\n[${timestamp}] Browser Session: ${this.sessionId}\n[${timestamp}] Project: ${projectDir}${urlPart}\n${'='.repeat(80)}\n`;
+      const header = `[${timestamp}] Browser Session: ${this.sessionId}\n[${timestamp}] Project: ${projectDir}${urlPart}\n`;
       this.logStream.write(header);
 
       console.error(`[Native Host] Started session: ${this.sessionId}`);
@@ -345,8 +355,6 @@ export class NativeHost {
 
     try {
       if (this.logStream) {
-        const footer = `\n[${new Date().toISOString()}] Browser session ended\n`;
-        this.logStream.write(footer);
         this.logStream.end();
       }
 

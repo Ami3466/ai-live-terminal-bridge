@@ -6,11 +6,12 @@
  * Must be run after building the project
  */
 
-import { writeFileSync, mkdirSync, existsSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { execSync } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -18,9 +19,30 @@ const __dirname = dirname(__filename);
 // Native messaging host ID (must match manifest.json in extension)
 const HOST_NAME = 'com.ai_live_log_bridge.browser_monitor';
 
-// Get the absolute path to the native host executable
+// Get package name from package.json (no hardcoding!)
 const projectRoot = join(__dirname, '..');
-const nativeHostPath = join(projectRoot, 'dist', 'browser', 'native-host');
+const packageJson = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf-8'));
+const PACKAGE_NAME = packageJson.name;
+
+// Get the absolute path to the native host executable
+// Try to use global npm installation if available, otherwise use local path
+let nativeHostPath;
+try {
+  // Try to get global npm prefix
+  const npmPrefix = execSync('npm root -g', { encoding: 'utf-8' }).trim();
+  const globalPath = join(npmPrefix, PACKAGE_NAME, 'dist', 'browser', 'native-host');
+
+  // Check if global installation exists
+  if (existsSync(globalPath)) {
+    nativeHostPath = globalPath;
+  } else {
+    // Fall back to local path
+    nativeHostPath = join(projectRoot, 'dist', 'browser', 'native-host');
+  }
+} catch (err) {
+  // Fall back to local path if npm command fails
+  nativeHostPath = join(projectRoot, 'dist', 'browser', 'native-host');
+}
 
 // Platform-specific manifest directory
 function getManifestDir() {

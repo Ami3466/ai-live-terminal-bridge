@@ -8,9 +8,11 @@ tsconfig.json
 .claude/
 node_modules/
 
-# Documentation (keep README.md, LICENSE)
+# Extension (users download from GitHub releases)
+extension/
+
+# Documentation (keep README.md, LICENSE, docs/)
 INSTALLATION.md
-QUICKSTART.md
 ai-manual.json
 
 # Prompts folder (users should copy from GitHub)

@@ -134,10 +134,12 @@ npm run install-native-host
 
 ### Step 3: Load Chrome Extension
 
+> ⚠️ **IMPORTANT**: Do NOT place the project on Desktop. Chrome blocks extensions from Desktop. Use Documents, Projects, or another location.
+
 1. Open Chrome → `chrome://extensions/`
 2. Enable **Developer mode** (top right toggle)
 3. Click **Load unpacked**
-4. Select folder: `~/.ai-live-log-bridge-extension`
+4. Select the `extension` folder from the project directory
 5. **Copy the Extension ID** (32 characters under the extension name)
 
 ### Step 4: Connect Extension to Native Host
@@ -279,6 +281,29 @@ npm test     # ❌ Not logged
    - Go to `chrome://extensions/`
    - Click "Inspect views: service worker"
    - Look for connection errors
+
+### Browser: "Access to the specified native messaging host is forbidden"
+
+**This is the most common issue!** The extension ID changed but the native host still has the old ID.
+
+**When this happens:**
+- Extension reloaded → New ID generated
+- Native host config → Still has old ID
+- Result: Chrome blocks the connection
+
+**Solution:**
+1. Get your current extension ID from `chrome://extensions/`
+2. Run: `npm run update-extension-id <YOUR_NEW_ID>`
+3. **Restart Chrome completely** (quit and reopen, not just reload)
+4. Refresh your localhost page
+
+**Example:**
+```bash
+# Extension ID: mgnfhhihoknkoomfinmldenmmglebmha
+npm run update-extension-id mgnfhhihoknkoomfinmldenmmglebmha
+```
+
+**Prevention:** Avoid reloading unpacked extensions. If you must reload, always re-run `update-extension-id` afterward.
 
 ### Browser: "Failed to start native messaging host"
 

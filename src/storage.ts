@@ -163,6 +163,42 @@ export function getMostRecentProjectDir(): string | null {
 }
 
 /**
+ * Get the most recently used project directory from ACTIVE sessions only
+ * This reads from active-sessions.json instead of the master index
+ * @returns The project directory of the most recent active session, or null if none found
+ */
+export function getMostRecentActiveProjectDir(): string | null {
+  const activePath = join(MCP_DIR, 'active-sessions.json');
+
+  if (!existsSync(activePath)) {
+    return null;
+  }
+
+  try {
+    const content = readFileSync(activePath, 'utf-8');
+    const active: Record<string, { projectDir: string; startTime: string }> = JSON.parse(content);
+
+    // Get all sessions sorted by start time (most recent first)
+    const sessions = Object.entries(active)
+      .map(([sessionId, data]) => ({
+        sessionId,
+        projectDir: data.projectDir,
+        startTime: new Date(data.startTime).getTime()
+      }))
+      .sort((a, b) => b.startTime - a.startTime);
+
+    // Return the project directory of the most recent session
+    if (sessions.length > 0) {
+      return sessions[0].projectDir;
+    }
+  } catch (err) {
+    console.error(`[Storage] Failed to read active sessions: ${err instanceof Error ? err.message : String(err)}`);
+  }
+
+  return null;
+}
+
+/**
  * Read last N lines from multiple session files (LIVE SESSIONS ONLY)
  * @param totalLines Total number of lines to read across all files
  * @param maxFiles Maximum number of session files to read
