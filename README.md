@@ -1,8 +1,30 @@
 # AI Live Log Bridge
 
-**Give your AI complete visibility into your development environment - terminal AND browser.**
+**Give your AI complete visibility into your development environment- terminal and browser.**
 
-A bridge between AI coding assistants and your live logs. Monitor terminal commands, browser console logs, and network requests automatically.
+A bridge between AI coding assistants and your live logs. Monitor and fix terminal commands, browser console logs, and network requests automatically.
+
+## Table of Contents
+
+### Quick Start Guides
+- [Claude Desktop / Claude Code](#claude-desktop--claude-code-setup)
+- [Cursor](#cursor-setup)
+- [Windsurf](#windsurf-setup)
+- [Cline](#cline-setup)
+- [Cody](#cody-setup)
+- [Other MCP Tools](#other-mcp-tools-setup)
+- [Non-MCP Tools (CLI Mode)](#cli-mode-for-non-mcp-tools)
+
+### Documentation
+- [The Problem](#the-problem)
+- [The Solution](#the-solution)
+- [MCP Tools](#seven-powerful-mcp-tools)
+- [What Gets Monitored](#what-gets-monitored)
+- [Real-World Examples](#real-world-examples)
+- [Configuration](#configuration)
+- [Security](#security-features)
+- [Troubleshooting](#troubleshooting)
+- [FAQ](#faq)
 
 ---
 
@@ -80,42 +102,237 @@ Here's the complete fix..."
 
 ---
 
-## 🚀 Quick Start
+## Setup Guides
 
-**New here?** → See [QUICKSTART.md](docs/QUICKSTART.md) for a step-by-step guide.
+### Claude Desktop / Claude Code Setup
 
-**Below:** Full documentation for reference.
-
----
-
-## Installation & Setup
-
-### Install the Tool
-
+**1. Install the tool**
 ```bash
 npm install -g ai-live-log-bridge
 ```
 
-### Setup Terminal Monitoring
+**2. Configure Claude**
 
-**Run commands with `ai` wrapper:**
-```bash
-ai npm test
-ai npm run dev
-ai python manage.py runserver
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "ai-live-log-bridge": {
+      "command": "ai",
+      "args": ["--server"]
+    }
+  }
+}
 ```
 
-**Configure your AI tool** (Claude Desktop, Cursor, Windsurf, etc.) - see [MCP Setup](#mcp-setup) below.
+**Restart Claude Desktop/Claude Code completely.**
 
-### Setup Browser Monitoring (Optional but Recommended)
+**3. Install Chrome Extension (Optional)**
 
-Monitor browser console logs and network activity from localhost pages.
+```bash
+git clone https://github.com/Ami3466/ai-live-log-bridge-extension
+cd ai-live-log-bridge-extension
+npm install && npm run build && npm run install-native-host
+```
 
-**Installation Guide:** [Browser Extension Setup](docs/BROWSER_EXTENSION_SETUP.md)
+Then load in Chrome: chrome://extensions/ → Enable "Developer mode" → "Load unpacked" → Select `dist` directory
 
-**Extension Repository:** [ai-live-log-bridge-extension](https://github.com/Ami3466/ai-live-log-bridge-extension)
+**4. Test It**
+```bash
+ai echo "Hello Claude"
+# Ask Claude: "What's in the terminal logs?"
+```
 
-**Done!** Now AI can see your terminal AND browser.
+---
+
+### Cursor Setup
+
+**1. Install the tool**
+```bash
+npm install -g ai-live-log-bridge
+```
+
+**2. Configure Cursor**
+
+Settings → Features → Model Context Protocol:
+```json
+{
+  "ai-live-log-bridge": {
+    "command": "ai",
+    "args": ["--server"]
+  }
+}
+```
+
+**Restart Cursor completely.**
+
+**3. Install Chrome Extension (Optional)**
+
+```bash
+git clone https://github.com/Ami3466/ai-live-log-bridge-extension
+cd ai-live-log-bridge-extension
+npm install && npm run build && npm run install-native-host
+```
+
+Then load in Chrome: chrome://extensions/ → Enable "Developer mode" → "Load unpacked" → Select `dist` directory
+
+**4. Test It**
+```bash
+ai echo "Hello Cursor"
+# Ask Cursor: "What's in the terminal logs?"
+```
+
+---
+
+### Windsurf Setup
+
+**1. Install the tool**
+```bash
+npm install -g ai-live-log-bridge
+```
+
+**2. Configure Windsurf**
+
+Navigate to MCP configuration in settings:
+```json
+{
+  "ai-live-log-bridge": {
+    "command": "ai",
+    "args": ["--server"]
+  }
+}
+```
+
+**Restart Windsurf completely.**
+
+**3. Install Chrome Extension (Optional)**
+
+```bash
+git clone https://github.com/Ami3466/ai-live-log-bridge-extension
+cd ai-live-log-bridge-extension
+npm install && npm run build && npm run install-native-host
+```
+
+Then load in Chrome: chrome://extensions/ → Enable "Developer mode" → "Load unpacked" → Select `dist` directory
+
+**4. Test It**
+```bash
+ai echo "Hello Windsurf"
+# Ask Windsurf: "What's in the terminal logs?"
+```
+
+---
+
+### Cline Setup
+
+**1. Install the tool**
+```bash
+npm install -g ai-live-log-bridge
+```
+
+**2. Configure Cline**
+
+VS Code Settings → Extensions → Cline → MCP Settings:
+```json
+{
+  "ai-live-log-bridge": {
+    "command": "ai",
+    "args": ["--server"]
+  }
+}
+```
+
+**Restart VS Code completely.**
+
+**3. Install Chrome Extension (Optional)**
+
+```bash
+git clone https://github.com/Ami3466/ai-live-log-bridge-extension
+cd ai-live-log-bridge-extension
+npm install && npm run build && npm run install-native-host
+```
+
+Then load in Chrome: chrome://extensions/ → Enable "Developer mode" → "Load unpacked" → Select `dist` directory
+
+**4. Test It**
+```bash
+ai echo "Hello Cline"
+# Ask Cline: "What's in the terminal logs?"
+```
+
+---
+
+### Cody Setup
+
+**1. Install the tool**
+```bash
+npm install -g ai-live-log-bridge
+```
+
+**2. Configure Cody**
+
+Cody Settings → MCP Configuration:
+```json
+{
+  "ai-live-log-bridge": {
+    "command": "ai",
+    "args": ["--server"]
+  }
+}
+```
+
+**Restart your IDE completely.**
+
+**3. Install Chrome Extension (Optional)**
+
+```bash
+git clone https://github.com/Ami3466/ai-live-log-bridge-extension
+cd ai-live-log-bridge-extension
+npm install && npm run build && npm run install-native-host
+```
+
+Then load in Chrome: chrome://extensions/ → Enable "Developer mode" → "Load unpacked" → Select `dist` directory
+
+**4. Test It**
+```bash
+ai echo "Hello Cody"
+# Ask Cody: "What's in the terminal logs?"
+```
+
+---
+
+### Other MCP Tools Setup
+
+For Continue, Zed, or any MCP-compatible tool:
+
+**1. Install the tool**
+```bash
+npm install -g ai-live-log-bridge
+```
+
+**2. Add MCP Configuration**
+
+Find your tool's MCP settings and add:
+```json
+{
+  "ai-live-log-bridge": {
+    "command": "ai",
+    "args": ["--server"]
+  }
+}
+```
+
+**3. Install Chrome Extension (Optional)**
+
+```bash
+git clone https://github.com/Ami3466/ai-live-log-bridge-extension
+cd ai-live-log-bridge-extension
+npm install && npm run build && npm run install-native-host
+```
+
+Then load in Chrome: chrome://extensions/ → Enable "Developer mode" → "Load unpacked" → Select `dist` directory
+
+**4. Restart your tool and test**
 
 ---
 
@@ -152,89 +369,6 @@ Monitor browser console logs and network activity from localhost pages.
 **`get_browser_instructions`** - Get browser setup and troubleshooting guide
 - Extension installation, connection help
 - AI calls when browser monitoring isn't working
-
----
-
-## MCP Setup
-
-### Claude Desktop
-
-Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "ai-live-log-bridge": {
-      "command": "ai",
-      "args": ["--server"]
-    }
-  }
-}
-```
-
-Restart Claude Desktop. **That's it!**
-
-### Cursor
-
-Open Settings > Features > Model Context Protocol, add:
-
-```json
-{
-  "ai-live-log-bridge": {
-    "command": "ai",
-    "args": ["--server"]
-  }
-}
-```
-
-Restart Cursor.
-
-### Windsurf
-
-Navigate to MCP configuration in settings, add:
-
-```json
-{
-  "ai-live-log-bridge": {
-    "command": "ai",
-    "args": ["--server"]
-  }
-}
-```
-
-Restart Windsurf.
-
-### Other AI Tools
-
-Works with any tool that supports MCP (Model Context Protocol).
-
-For tools without MCP support (Aider, Continue, etc.), see [CLI Mode](#cli-mode) below.
-
----
-
-## Browser Setup
-
-For detailed browser extension setup instructions, see [Browser Extension Setup Guide](docs/BROWSER_EXTENSION_SETUP.md).
-
----
-
-### Test It
-
-```bash
-# Start dev server
-ai npm run dev
-
-# Open localhost:3000 in Chrome
-# Open DevTools (F12), run:
-console.log('Test message');
-console.error('Test error');
-
-# Ask AI:
-"Check the browser console for errors"
-
-# AI calls get_browser_errors tool
-# AI sees everything - no copy-paste needed!
-```
 
 ---
 
